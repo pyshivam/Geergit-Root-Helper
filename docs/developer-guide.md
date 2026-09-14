@@ -75,21 +75,29 @@ never throws into the UI.
 
 ## On-device app operations: Dart MCP first (MUST)
 
-For any operation against a running app on a device — hot reload / hot
-restart, widget inspection, reading runtime errors, driver commands, VM
-service queries, targeted analysis — you **MUST** use the Dart MCP server
-tools, not ad-hoc shell or CLI equivalents:
+Reference: the [Dart Tooling MCP Server](https://github.com/dart-lang/ai/tree/main/pkgs/dart_mcp_server)
+(`dart mcp-server`); its README holds the authoritative, generated tool list.
 
-- `dtd` — discover (`listDtdUris`) and connect to live apps first.
+For any operation against a running app on a device you **MUST** use the
+Dart MCP tools, not ad-hoc shell or CLI equivalents:
+
+- `dtd` — always first: `listDtdUris` → `connect` → `listConnectedApps`.
 - `hot_reload` / `hot_restart` — apply code changes to the running app.
 - `widget_inspector` — inspect the live widget tree.
-- `get_runtime_errors` — read recent runtime errors from the active app.
+- `get_runtime_errors` — recent runtime errors of the active app.
 - `flutter_driver_command` — drive UI interactions.
-- `vm_service` — VM service queries against a connected app.
-- `analyze_files` — analyze specific paths instead of whole-project runs.
+- `vm_service` — VM service queries (also enables reload on non-DTD apps).
+- `lsp` — hover / signature help / workspace symbol resolution.
+- `analyze_files`, `pub`, `pub_dev_search`, `read_package_uris`,
+  `rip_grep_packages`, `roots` — analysis and dependency work.
+
+Launch rule: when spawning an app, always pass `--print-dtd` to `dart` /
+`flutter` so the agent can connect directly (`--observe` too for pure Dart
+apps; both flags go before the script path for `dart`). Flutter apps in
+debug/profile register with DTD automatically.
 
 Shell/`flutter` CLI is for what the MCP server cannot do: builds, installs,
-`pub get`, and the file-pull verification above.
+and the file-pull verification above.
 
 ## Task closeout: commit & push
 
