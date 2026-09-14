@@ -73,6 +73,24 @@ timeouts. Follow the existing pattern: a channel method that returns
 `filesDir`, a `toReport()` on the data class, and a write after fetch that
 never throws into the UI.
 
+## On-device app operations: Dart MCP first (MUST)
+
+For any operation against a running app on a device — hot reload / hot
+restart, widget inspection, reading runtime errors, driver commands, VM
+service queries, targeted analysis — you **MUST** use the Dart MCP server
+tools, not ad-hoc shell or CLI equivalents:
+
+- `dtd` — discover (`listDtdUris`) and connect to live apps first.
+- `hot_reload` / `hot_restart` — apply code changes to the running app.
+- `widget_inspector` — inspect the live widget tree.
+- `get_runtime_errors` — read recent runtime errors from the active app.
+- `flutter_driver_command` — drive UI interactions.
+- `vm_service` — VM service queries against a connected app.
+- `analyze_files` — analyze specific paths instead of whole-project runs.
+
+Shell/`flutter` CLI is for what the MCP server cannot do: builds, installs,
+`pub get`, and the file-pull verification above.
+
 ## Task closeout: commit & push
 
 After every completed task, commit and push the work before moving on — do not wait for a reminder:
