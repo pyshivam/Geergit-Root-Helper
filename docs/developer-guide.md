@@ -57,6 +57,22 @@ $ANDROID_HOME/build-tools/37.0.0/aapt2 dump badging build/app/outputs/flutter-ap
 
 Expect `package: name='com.geerxlabs.geergitroothelper'` and `application-label:'Geergit Root Helper'`.
 
+### Verifying values on device: file over screenshots
+
+When you need to see runtime values on a device (versions, identifiers, flags,
+fetched data), **never loop on screenshots**. Have the app write the values to
+a file in its internal storage and pull it:
+
+```bash
+adb exec-out run-as com.geerxlabs.geergitroothelper cat files/report.txt
+```
+
+Screenshots are only for visual/layout verification. Text values are pulled
+from files — they are exact, greppable, and immune to lock screens and screen
+timeouts. Follow the existing pattern: a channel method that returns
+`filesDir`, a `toReport()` on the data class, and a write after fetch that
+never throws into the UI.
+
 ## Task closeout: commit & push
 
 After every completed task, commit and push the work before moving on — do not wait for a reminder:
