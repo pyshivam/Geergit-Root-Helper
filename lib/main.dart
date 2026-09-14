@@ -14,6 +14,7 @@ class RootHelperApp extends StatelessWidget {
     const seed = Color(0xFF8AADF4); // KernelSU-Next accent
     return MaterialApp(
       title: 'Geergit Root Helper',
+      debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.system,
       theme: ThemeData(
         useMaterial3: true,
@@ -98,6 +99,11 @@ class _HomeBody extends StatelessWidget {
               label: 'Kernel version',
               value: info.kernelVersion,
             ),
+            _InfoRow(
+              icon: Icons.fingerprint,
+              label: 'Build fingerprint',
+              value: info.fingerprint,
+            ),
           ],
         ),
       ],
@@ -127,9 +133,8 @@ class _StatusCard extends StatelessWidget {
                 children: [
                   Text(
                     info.model,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -164,9 +169,8 @@ class _LabeledCard extends StatelessWidget {
           children: [
             Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             for (var i = 0; i < rows.length; i++) ...[
@@ -203,9 +207,8 @@ class _InfoRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: Theme.of(context).textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 2),
               Text(value, style: Theme.of(context).textTheme.bodySmall),

@@ -17,5 +17,6 @@ void main() {
     expect(find.text('Software'), findsOneWidget);
     expect(find.text('Model'), findsOneWidget);
     expect(find.text('Kernel version'), findsOneWidget);
+    expect(find.text('Build fingerprint'), findsOneWidget);
   });
 }

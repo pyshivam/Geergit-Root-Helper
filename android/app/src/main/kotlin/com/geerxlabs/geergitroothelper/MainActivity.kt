@@ -20,7 +20,8 @@ class MainActivity : FlutterActivity() {
                         "device" to Build.DEVICE,
                         "androidRelease" to Build.VERSION.RELEASE,
                         "sdkInt" to Build.VERSION.SDK_INT,
-                        "abis" to Build.SUPPORTED_ABIS.joinToString(", ")
+                        "abis" to Build.SUPPORTED_ABIS.joinToString(", "),
+                        "fingerprint" to Build.FINGERPRINT
                     )
                 )
                 else -> result.notImplemented()

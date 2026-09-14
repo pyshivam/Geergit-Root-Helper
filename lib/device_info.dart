@@ -11,6 +11,7 @@ class DeviceInfo {
     required this.sdkInt,
     required this.abis,
     required this.kernelVersion,
+    required this.fingerprint,
   });
 
   final String model;
@@ -19,6 +20,7 @@ class DeviceInfo {
   final int sdkInt;
   final String abis;
   final String kernelVersion;
+  final String fingerprint;
 
   static const _channel = MethodChannel(
     'com.geerxlabs.geergitroothelper/device_info',
@@ -45,6 +47,7 @@ class DeviceInfo {
         sdkInt: 0,
         abis: _unavailable,
         kernelVersion: kernel,
+        fingerprint: _unavailable,
       );
     }
     return DeviceInfo(
@@ -54,6 +57,7 @@ class DeviceInfo {
       sdkInt: android['sdkInt'] as int? ?? 0,
       abis: android['abis'] as String? ?? _unavailable,
       kernelVersion: kernel,
+      fingerprint: android['fingerprint'] as String? ?? _unavailable,
     );
   }
 
