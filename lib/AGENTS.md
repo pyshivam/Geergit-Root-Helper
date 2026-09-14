@@ -17,8 +17,8 @@ Owns the Dart application layer: the entry point, screens, widgets, and app-leve
 
 ## Work Guidance
 
-- `lib/main.dart` holds `main()` and the root `MaterialApp`.
-- Organize by feature folder (`lib/<feature>/…`) once a second screen exists; keep shared widgets in `lib/widgets/` and pure helpers in `lib/utils/`.
+- `lib/main.dart` holds `main()` and the root `MaterialApp.router`; the router is built by `core/router/app_router.dart` (`go_router`, `StatefulShellRoute.indexedStack` — same pattern as the geergit app).
+- Organize by feature folder: `core/` (router, theme, data) and `features/<feature>/screens/`; the bottom-nav shell scaffold lives at `screens/home/home_screen.dart`. Shared widgets go in `core/widgets/` once they outgrow their feature.
 - Prefer `const` constructors and small single-purpose widgets; extract at the second identical use.
 - Do not add packages without explicit user approval.
 - When a change alters app identity (name, id, window title), update every platform in the same change — see the identity table in `docs/coding-standards.md`.
