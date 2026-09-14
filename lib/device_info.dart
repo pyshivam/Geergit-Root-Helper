@@ -71,6 +71,30 @@ class DeviceInfo {
     );
   }
 
+  /// Internal-storage path for the device-verification report, or null
+  /// off-Android / without the handler.
+  static Future<String?> reportPath() async {
+    if (!Platform.isAndroid) return null;
+    try {
+      final dir = await _channel.invokeMethod<String>('getFilesDir');
+      return dir == null ? null : '$dir/report.txt';
+    } on PlatformException {
+      return null;
+    }
+  }
+
+  String toReport() =>
+      '''
+Geergit Root Helper device report
+model: $model
+manufacturer: $manufacturer
+androidRelease: $androidRelease
+sdkInt: $sdkInt
+abis: $abis
+kernelVersion: $kernelVersion
+fingerprint: $fingerprint
+''';
+
   static Future<String> _kernelVersion() async {
     try {
       final raw = await File('/proc/version').readAsString();

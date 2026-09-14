@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import 'device_info.dart';
@@ -40,7 +42,19 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late final Future<DeviceInfo> _info = DeviceInfo.fetch();
+  late final Future<DeviceInfo> _info = DeviceInfo.fetch()..then(_writeReport);
+
+  // Debug aid: device verification pulls this file via
+  // `adb exec-out run-as <pkg> cat files/report.txt` instead of screenshots.
+  Future<void> _writeReport(DeviceInfo info) async {
+    final path = await DeviceInfo.reportPath();
+    if (path == null) return;
+    try {
+      await File(path).writeAsString(info.toReport());
+    } on IOException {
+      // verification aid only — never break the UI over it
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

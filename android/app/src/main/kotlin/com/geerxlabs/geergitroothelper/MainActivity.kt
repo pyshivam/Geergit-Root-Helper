@@ -26,6 +26,8 @@ class MainActivity : FlutterActivity() {
                         "kernelRelease" to Os.uname().release
                     )
                 )
+
+                "getFilesDir" -> result.success(filesDir.absolutePath)
                 else -> result.notImplemented()
             }
         }

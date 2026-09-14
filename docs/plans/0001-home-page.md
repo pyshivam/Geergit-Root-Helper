@@ -20,6 +20,9 @@ manager `Home.kt`: hero status card, device card, kernel card.
   `VERSION.RELEASE/SDK_INT`, `SUPPORTED_ABIS`, `/proc/version`.
 - Non-Android or channel failure → `Unavailable on this platform`
   fallback; UI never throws.
+- After fetch the app writes `files/report.txt` (app internal storage) —
+  device verification is `adb exec-out run-as <pkg> cat files/report.txt`,
+  no screenshots.
 
 ## Theme
 
