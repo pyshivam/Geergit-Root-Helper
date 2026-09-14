@@ -1,6 +1,7 @@
 package com.geerxlabs.geergitroothelper
 
 import android.os.Build
+import android.system.Os
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -21,7 +22,8 @@ class MainActivity : FlutterActivity() {
                         "androidRelease" to Build.VERSION.RELEASE,
                         "sdkInt" to Build.VERSION.SDK_INT,
                         "abis" to Build.SUPPORTED_ABIS.joinToString(", "),
-                        "fingerprint" to Build.FINGERPRINT
+                        "fingerprint" to Build.FINGERPRINT,
+                        "kernelRelease" to Os.uname().release
                     )
                 )
                 else -> result.notImplemented()

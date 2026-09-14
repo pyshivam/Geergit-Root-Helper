@@ -81,6 +81,11 @@ class _HomeBody extends StatelessWidget {
               value: info.manufacturer,
             ),
             _InfoRow(icon: Icons.memory, label: 'ABI', value: info.abis),
+            _InfoRow(
+              icon: Icons.fingerprint,
+              label: 'Build fingerprint',
+              value: info.fingerprint,
+            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -98,11 +103,6 @@ class _HomeBody extends StatelessWidget {
               icon: Icons.terminal,
               label: 'Kernel version',
               value: info.kernelVersion,
-            ),
-            _InfoRow(
-              icon: Icons.fingerprint,
-              label: 'Build fingerprint',
-              value: info.fingerprint,
             ),
           ],
         ),

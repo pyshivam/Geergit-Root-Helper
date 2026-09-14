@@ -8,9 +8,9 @@ manager `Home.kt`: hero status card, device card, kernel card.
 - `AppBar`: app title, no actions yet.
 - Hero `StatusCard`: filled card, icon + device model + Android version.
   No fake root state — backend wiring is future work.
-- `DeviceCard`: Model, Manufacturer, Android release (SDK), ABI rows.
-- `KernelCard`: kernel version row (`/proc/version` on Android) + build
-  fingerprint row (`Build.FINGERPRINT`).
+- `DeviceCard`: Model, Manufacturer, ABI, Build fingerprint (`Build.FINGERPRINT`) rows.
+- `KernelCard`: kernel release row (`Os.uname().release` on Android — `/proc/version`
+  is rewritten by stealth stacks; `/proc/version` only as non-Android fallback).
 - Row style copies KSU `InfoCardItem`: icon + semibold label + body value.
 
 ## Data (`lib/device_info.dart` + `MainActivity` channel)

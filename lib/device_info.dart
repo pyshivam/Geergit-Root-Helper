@@ -28,36 +28,46 @@ class DeviceInfo {
   static const _unavailable = 'Unavailable on this platform';
 
   static Future<DeviceInfo> fetch() async {
-    final kernel = await _kernelVersion();
-    Map<dynamic, dynamic>? android;
-    if (Platform.isAndroid) {
-      try {
-        android = await _channel.invokeMethod<Map<dynamic, dynamic>>(
-          'getDeviceInfo',
-        );
-      } on PlatformException {
-        android = null; // emulator/host without the handler
-      }
-    }
-    if (android == null) {
+    // /proc/version is filterable (root-helper stealth stacks rewrite it);
+    // uname().release matches what KernelSU manager shows.
+    if (!Platform.isAndroid) {
       return DeviceInfo(
         model: _unavailable,
         manufacturer: _unavailable,
         androidRelease: _unavailable,
         sdkInt: 0,
         abis: _unavailable,
-        kernelVersion: kernel,
+        kernelVersion: await _kernelVersion(),
         fingerprint: _unavailable,
       );
     }
+    try {
+      final android = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'getDeviceInfo',
+      );
+      if (android != null) {
+        return DeviceInfo(
+          model: android['model'] as String? ?? _unavailable,
+          manufacturer: android['manufacturer'] as String? ?? _unavailable,
+          androidRelease: android['androidRelease'] as String? ?? _unavailable,
+          sdkInt: android['sdkInt'] as int? ?? 0,
+          abis: android['abis'] as String? ?? _unavailable,
+          kernelVersion:
+              android['kernelRelease'] as String? ?? await _kernelVersion(),
+          fingerprint: android['fingerprint'] as String? ?? _unavailable,
+        );
+      }
+    } on PlatformException {
+      // fall through to the /proc/version fallback
+    }
     return DeviceInfo(
-      model: android['model'] as String? ?? _unavailable,
-      manufacturer: android['manufacturer'] as String? ?? _unavailable,
-      androidRelease: android['androidRelease'] as String? ?? _unavailable,
-      sdkInt: android['sdkInt'] as int? ?? 0,
-      abis: android['abis'] as String? ?? _unavailable,
-      kernelVersion: kernel,
-      fingerprint: android['fingerprint'] as String? ?? _unavailable,
+      model: _unavailable,
+      manufacturer: _unavailable,
+      androidRelease: _unavailable,
+      sdkInt: 0,
+      abis: _unavailable,
+      kernelVersion: await _kernelVersion(),
+      fingerprint: _unavailable,
     );
   }
 
