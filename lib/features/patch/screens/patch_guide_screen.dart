@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Step-by-step guide for patching boot.img with an AnyKernel zip.
-///
-/// Shown both as the "Patch" tab (inside the shell) and as a pushed page
-/// (from the home CTA card).
+/// Step-by-step guide for the app's own flow: patch inside the app,
+/// export, flash from fastboot, verify, recover. Lessons written here
+/// are from the 2026-09-15 field test on a Pixel 7 (see
+/// `docs/plans/0003-boot-patch-pipeline.md`).
 class PatchGuideScreen extends StatefulWidget {
   const PatchGuideScreen({super.key});
 
@@ -19,36 +19,64 @@ class _PatchGuideScreenState extends State<PatchGuideScreen> {
       title: 'Prepare',
       icon: Icons.shield_outlined,
       points: [
-        'Bootloader is unlocked (OEM unlocking done, `fastboot flashing unlock`).',
-        'Battery above 30% — an interrupted flash bricks nothing but wastes a boot.',
-        'Stock boot.img backed up to a PC (rollback path if the new kernel fails).',
+        'Bootloader unlocked (developer options → OEM unlocking, then '
+            '`fastboot flashing unlock`).',
+        'Stock boot.img for THIS device and firmware, copied to the '
+            'phone and to a PC — it is the only reliable rollback.',
+        'Battery above 30%.',
       ],
     ),
     (
-      title: 'Get the right zip',
-      icon: Icons.download_outlined,
+      title: 'Patch in the app',
+      icon: Icons.auto_fix_high,
       points: [
-        'The AnyKernel zip must be built for your exact device codename.',
-        'Check the codename in the Device tab before downloading.',
-        'A zip for a different model is the most common cause of a bootloop.',
+        'Simple: pick the stock boot.img. The app reads its kernel '
+            'version, checks it against the running kernel, fetches the '
+            'exact patch-level AnyKernel zip, and repacks — no root needed.',
+        'Advanced: pick boot.img + a zip built for the full platform '
+            'release (e.g. 6.1.157-android14) — patch level matters, not '
+            'just the KMI (android14-6.1).',
+        'Heed the mismatch warnings: a wrong-version kernel usually '
+            'means the boot.img or zip is not from this firmware.',
       ],
     ),
     (
-      title: 'Flash',
+      title: 'Export and flash',
       icon: Icons.flash_on_outlined,
       points: [
-        'Open KernelSU Manager → Install.',
-        'Choose the AnyKernel zip and confirm the flash.',
-        'The manager writes the new kernel to the active boot slot.',
+        'Tap “Save patched boot.img…” and store it in Downloads, then '
+            'copy it to a PC with adb/fastboot.',
+        '`adb reboot bootloader`, then '
+            '`fastboot flash boot new-boot.img`, then `fastboot reboot`.',
+        'Pixel 7 / Tensor: the kernel lives in the boot partition — '
+            'flash boot. Devices with a separate init_boot keep only the '
+            'ramdisk there.',
       ],
     ),
     (
       title: 'Verify',
       icon: Icons.verified_outlined,
       points: [
-        'Reboot and open Settings › About phone › Kernel version.',
-        'It must match the kernel shipped in the zip.',
-        'If the device bootloops, flash the backed-up boot.img from fastboot.',
+        'First boot takes a little longer — give it a minute.',
+        'KernelSU Manager must show “Working”. That status is the '
+            'proof: the manager queried the in-kernel driver.',
+        'Root is granted per app in the manager’s Superuser tab. `su` '
+            'is intentionally not served to the adb shell.',
+      ],
+    ),
+    (
+      title: 'If it fails to boot',
+      icon: Icons.restore_outlined,
+      points: [
+        'A bad kernel drops the device back to the bootloader screen — '
+            'expected, not bricked.',
+        'Flash the stock backup: `fastboot flash boot boot.img` (use '
+            'the slot shown by `fastboot getvar current-slot`), then '
+            '`fastboot reboot`.',
+        'A/B devices: the other slot may still boot — try '
+            '`fastboot --set-active=a` or `=b` before reflashing.',
+        'Stuck? Use “Export logs” in the Patch tab and attach the zip '
+            'when asking for help — every try is recorded.',
       ],
     ),
   ];
@@ -56,7 +84,7 @@ class _PatchGuideScreenState extends State<PatchGuideScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Patch boot.img')),
+      appBar: AppBar(title: const Text('Patch and flash boot.img')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -100,9 +128,9 @@ class _PatchGuideScreenState extends State<PatchGuideScreen> {
                   SizedBox(width: 16),
                   Expanded(
                     child: Text(
-                      'Never flash a zip meant for another device. The only '
-                      'reliable recovery from a bad kernel is the stock '
-                      'boot.img backup.',
+                      'Match the patch level, keep the stock boot.img '
+                      'backup on a PC, and never interrupt a fastboot '
+                      'write.',
                     ),
                   ),
                 ],
