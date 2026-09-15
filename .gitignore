@@ -44,6 +44,12 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Release signing identity — never commit (canonical copy: GitHub Secrets,
+# see docs/plans/0005-release-build-ci.md)
+/android/*.keystore
+!/android/app/geergit-root-helper.keystore.example
+/android/keystore.properties
+
 # Widget Preview related
 .widget_preview/
 
