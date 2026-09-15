@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 
 import '../../../core/data/device_info.dart';
 import '../../../core/data/file_export.dart';
+import '../../../core/logging/app_logger.dart';
+import '../../../core/logging/log_export.dart';
 import '../../../core/patch/anykernel_repo.dart';
 import '../../../core/patch/anykernel_zip.dart';
 import '../../../core/patch/boot_patcher.dart';
@@ -76,9 +78,11 @@ class _PatchFlowScreenState extends State<PatchFlowScreen> {
       _busyLabel = label;
       _error = null;
     });
+    AppLogger.log('PatchFlow', label);
     try {
       await body();
     } on Exception catch (e) {
+      AppLogger.log('PatchFlow', 'ERROR: $e');
       setState(() => _error = e.toString());
     } finally {
       if (mounted) setState(() => _busyLabel = '');
@@ -96,6 +100,11 @@ class _PatchFlowScreenState extends State<PatchFlowScreen> {
     if (files.isEmpty) return;
     final file = files.single;
     final stream = file.readAsByteStream();
+    AppLogger.log(
+      'PatchFlow',
+      '===== PATCH TRY mode=${widget.mode} =====\n'
+          'picked boot.img: ${file.name}',
+    );
     await _run('Unpacking boot image…', () async {
       final root = await _filesRoot;
       final workspace = Directory(
@@ -126,6 +135,10 @@ class _PatchFlowScreenState extends State<PatchFlowScreen> {
   }
 
   void _continueFromBootGate() {
+    AppLogger.log(
+      'PatchFlow',
+      'boot gate: match=$_bootMatchesDevice acked=$_bootGateAcked',
+    );
     setState(() {
       _bootGateAcked = true;
       _stage = _Stage.zipStep;
@@ -168,6 +181,10 @@ class _PatchFlowScreenState extends State<PatchFlowScreen> {
       if (res.statusCode != 200) {
         throw AnyKernelRepoException('Download failed: HTTP ${res.statusCode}');
       }
+      AppLogger.log(
+        'PatchFlow',
+        'downloaded ${zip.name}: ${res.bodyBytes.length} bytes',
+      );
       _loadZipBytes(res.bodyBytes);
     });
   }
@@ -189,6 +206,11 @@ class _PatchFlowScreenState extends State<PatchFlowScreen> {
     final zip = AnyKernelZip.read(bytes);
     final zipKernel = zip.kernelRelease;
     final bootKmi = _bootKernel?.kmi;
+    AppLogger.log(
+      'PatchFlow',
+      'zip kernel: ${zipKernel?.release ?? 'unparseable'} '
+          '(entry ${zip.kernelEntryName}, ${bytes.length} bytes)',
+    );
     setState(() {
       _zip = zip;
       _zipBytes = bytes;
@@ -248,7 +270,11 @@ output: ${output.path} (${output.lengthSync()} bytes)
     final output = _output;
     if (output == null) return;
     setState(() => _exporting = true);
-    await FileExport.export(sourcePath: output.path);
+    final uri = await FileExport.export(sourcePath: output.path);
+    AppLogger.log(
+      'PatchFlow',
+      'exported ${output.path} -> ${uri ?? 'cancelled'}',
+    );
     if (mounted) setState(() => _exporting = false);
   }
 
@@ -544,6 +570,11 @@ output: ${output.path} (${output.lengthSync()} bytes)
         const SizedBox(height: 16),
         const _FlashInstructionsCard(),
         const SizedBox(height: 8),
+        TextButton.icon(
+          onPressed: _exporting ? null : () => exportLogsWithFeedback(context),
+          icon: const Icon(Icons.description_outlined),
+          label: const Text('Export logs'),
+        ),
         TextButton(
           onPressed: () => context.go('/home'),
           child: const Text('Back to home'),

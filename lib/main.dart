@@ -1,10 +1,38 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/data/device_info.dart';
+import 'core/logging/app_logger.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AppLogger.init();
+  final device = await DeviceInfo.fetch();
+  AppLogger.log(
+    'Device',
+    '${device.manufacturer} ${device.model}, Android ${device.androidRelease} '
+        '(SDK ${device.sdkInt}), abis ${device.abis}',
+  );
+  AppLogger.log('Device', 'kernel: ${device.kernelVersion}');
+  AppLogger.log('Device', 'fingerprint: ${device.fingerprint}');
+
+  // File-based logging exists for shared-APK users with no adb: make sure
+  // hard crashes leave their stack in the session log too.
+  final origOnError = FlutterError.onError;
+  FlutterError.onError = (details) {
+    AppLogger.log('FATAL', details.exceptionAsString());
+    AppLogger.log('FATAL', '${details.stack ?? 'no stack'}');
+    origOnError?.call(details);
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    AppLogger.log('FATAL', 'uncaught: $error');
+    AppLogger.log('FATAL', '$stack');
+    return true;
+  };
+
   runApp(const RootHelperApp());
 }
 

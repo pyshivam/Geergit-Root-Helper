@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 
+import '../logging/app_logger.dart';
+
 /// Runs the magiskboot bundled with the APK as `libmagiskboot.so`.
 ///
 /// Android W^X (SELinux) blocks executing downloaded binaries from the
@@ -52,10 +54,16 @@ class Magiskboot {
     required String workingDirectory,
   }) async {
     final bin = await ensure();
+    AppLogger.log('Magiskboot', 'exec ${bin.split('/').last} ${args.join(' ')}');
     final result = await Process.run(
       bin,
       args,
       workingDirectory: workingDirectory,
+    );
+    AppLogger.log(
+      'Magiskboot',
+      'exit ${result.exitCode}'
+          '${result.stderr.toString().trim().isEmpty ? '' : ' stderr: ${result.stderr.toString().trim()}'}}',
     );
     if (result.exitCode != 0) {
       final err = (result.stderr as String?)?.trim();

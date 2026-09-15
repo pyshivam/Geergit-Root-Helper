@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/logging/log_export.dart';
+
 /// Patch tab landing: pick a mode, or read the flashing guide.
 class PatchLandingScreen extends StatelessWidget {
   const PatchLandingScreen({super.key});
@@ -17,7 +19,8 @@ class PatchLandingScreen extends StatelessWidget {
             icon: Icons.auto_fix_high,
             color: scheme.primaryContainer,
             title: 'Simple — patch now',
-            subtitle: 'Pick your stock boot.img. The matching KernelSU '
+            subtitle:
+                'Pick your stock boot.img. The matching KernelSU '
                 'AnyKernel zip is fetched and verified automatically.',
             onTap: () => context.push('/patch/flow?mode=simple'),
           ),
@@ -26,7 +29,8 @@ class PatchLandingScreen extends StatelessWidget {
             icon: Icons.tune,
             color: scheme.secondaryContainer,
             title: 'Advanced — bring your own zip',
-            subtitle: 'Pick the boot.img and the AnyKernel zip yourself. '
+            subtitle:
+                'Pick the boot.img and the AnyKernel zip yourself. '
                 'Kernel versions are compared before patching.',
             onTap: () => context.push('/patch/flow?mode=advanced'),
           ),
@@ -35,9 +39,21 @@ class PatchLandingScreen extends StatelessWidget {
             icon: Icons.menu_book_outlined,
             color: scheme.surfaceContainerHighest,
             title: 'Flashing guide',
-            subtitle: 'Bootloader prep, fastboot steps, and recovery from a '
+            subtitle:
+                'Bootloader prep, fastboot steps, and recovery from a '
                 'bad flash.',
             onTap: () => context.push('/patch/guide'),
+          ),
+          const SizedBox(height: 16),
+          _ModeCard(
+            icon: Icons.description_outlined,
+            color: scheme.surfaceContainerHighest,
+            title: 'Export logs',
+            subtitle:
+                'Bundle every session log into a zip you can send for '
+                'debugging — what happened stays on record even if the app '
+                'crashed.',
+            onTap: () => exportLogsWithFeedback(context),
           ),
         ],
       ),
@@ -83,7 +99,10 @@ class _ModeCard extends StatelessWidget {
                           ?.copyWith(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 4),
-                    Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ],
                 ),
               ),

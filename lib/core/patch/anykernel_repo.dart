@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../logging/app_logger.dart';
 import 'kernel_release.dart';
 
 /// Fetches KernelSU/SUSFS AnyKernel zips from the WildKernels release
@@ -70,6 +71,7 @@ class AnyKernelRepo {
   /// KMI (`android14-6.1`). Within each pass, AnyKernel builds win.
   /// Returns null when nothing matches.
   Future<RemoteZip?> findMatchingZip(String release) async {
+    AppLogger.log('AnyKernelRepo', 'searching $repo for "$release"');
     final res = await http.get(
       Uri.parse('$_base/$repo/releases'),
       headers: const {'User-Agent': _userAgent},
@@ -110,7 +112,14 @@ class AnyKernelRepo {
         }
       }
     }
-    return kmiFallback ?? anyKernelKmiFallback;
+    final found = kmiFallback ?? anyKernelKmiFallback;
+    AppLogger.log(
+      'AnyKernelRepo',
+      found == null
+          ? 'no match for "$release" (kmi $kmi) in $repo'
+          : 'picked ${found.name} (${found.releaseTag}, ${found.size} bytes)',
+    );
+    return found;
   }
 }
 

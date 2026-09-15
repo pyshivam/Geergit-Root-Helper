@@ -36,6 +36,14 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    packaging {
+        jniLibs {
+            // Extract libmagiskboot.so at install: it must be a real file in
+            // nativeLibraryDir so the app can exec it (W^X blocks app_data_file).
+            useLegacyPackaging = true
+        }
+    }
 }
 
 kotlin {

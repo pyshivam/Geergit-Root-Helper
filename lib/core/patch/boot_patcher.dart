@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../logging/app_logger.dart';
 import 'kernel_release.dart';
 import 'magiskboot.dart';
 
@@ -26,9 +27,18 @@ class BootPatcher {
     await bootImage.copy(_boot.path);
     await magiskboot.run(['unpack', _bootName], workingDirectory: workDir.path);
     if (!_kernel.existsSync()) {
+      AppLogger.log('BootPatcher', 'unpack produced no kernel');
       throw const BootPatcherException('No kernel found in this boot image');
     }
-    return KernelRelease.parseFromKernelBytes(await _kernel.readAsBytes());
+    final release = KernelRelease.parseFromKernelBytes(
+      await _kernel.readAsBytes(),
+    );
+    AppLogger.log(
+      'BootPatcher',
+      'unpacked boot.img (${bootImage.lengthSync()} bytes), kernel: '
+          '${release?.release ?? 'unparseable'}',
+    );
+    return release;
   }
 
   /// Overwrites the unpacked kernel with [kernelBytes] and repacks.
@@ -44,6 +54,10 @@ class BootPatcher {
         'magiskboot did not produce new-boot.img',
       );
     }
+    AppLogger.log(
+      'BootPatcher',
+      'repacked: ${output.path} (${output.lengthSync()} bytes)',
+    );
     return output;
   }
 }
