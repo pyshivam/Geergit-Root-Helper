@@ -85,7 +85,7 @@ class DeviceInfo {
 
   String toReport() =>
       '''
-Geergit Root Helper device report
+GRoot Helper device report
 model: $model
 manufacturer: $manufacturer
 androidRelease: $androidRelease

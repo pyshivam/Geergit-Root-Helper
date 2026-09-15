@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- GRoot Helper brand colors (see DESIGN.md).
+         Light values; values-night inverts grh_ring and grh_splash_bg
+         so the splash follows the app theme. Colors computed from
+         ColorScheme.fromSeed of the logo navy #003966. -->
+    <color name="grh_ring">#003966</color>
+    <color name="grh_splash_bg">#F8F9FF</color>
+    <color name="grh_accent">#003966</color>
+    <color name="grh_paper">#F4F6FD</color>
+</resources>

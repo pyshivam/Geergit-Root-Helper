@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ platform splash. The theme-following background is
+        honored (grh_splash_bg flips in values-night). The animated-icon
+        and icon-background overrides are deliberately NOT set: on
+        Android 13+ the platform ignores them here and falls back to the
+        adaptive launcher icon (white field + navy ring) — which is our
+        branding anyway. Verified on Pixel 7 Android 17: icon override
+        renders nothing, background override works.
+        windowBackground stays the pre-12 drawable for the gap between
+        splash and first frame. -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowSplashScreenBackground">@color/grh_splash_bg</item>
+    </style>
+</resources>

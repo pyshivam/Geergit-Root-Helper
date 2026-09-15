@@ -25,6 +25,18 @@ jobs:
           flutter-version: "3.47.4"
           cache: true
 
+      # versionName carries the commit it was built from:
+      # 1.0.0+1 -> 1.0.0-abcdef0+1 (pubspec base + short SHA + build no).
+      - name: Stamp version with commit SHA
+        id: version
+        run: |
+          BASE=$(grep '^version:' pubspec.yaml | sed 's/version: *//; s/+.*//')
+          BUILD=$(grep '^version:' pubspec.yaml | sed 's/.*+//')
+          STAMPED="$BASE-${GITHUB_SHA::7}+$BUILD"
+          sed -i "s/^version:.*/version: $STAMPED/" pubspec.yaml
+          echo "version=$STAMPED" >> "$GITHUB_OUTPUT"
+          echo "Stamped version: $STAMPED"
+
       - name: Quality gate
         run: |
           flutter pub get
@@ -48,5 +60,6 @@ jobs:
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
+          name: ${{ steps.version.outputs.version }}
           files: build/app/outputs/flutter-apk/app-release.apk
           generate_release_notes: true

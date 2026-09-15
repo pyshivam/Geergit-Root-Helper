@@ -58,3 +58,6 @@ app.*.map.json
 
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
+
+# Local stock boot.img rollback artifact (64MB, per-device)
+boot.img

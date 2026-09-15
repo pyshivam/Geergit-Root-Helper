@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/data/device_info.dart';
+import 'core/data/theme_prefs.dart';
 import 'core/logging/app_logger.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -10,6 +13,10 @@ import 'core/theme/app_theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppLogger.init();
+  final filesRoot =
+      AppLogger.currentFile?.parent.parent ?? Directory.systemTemp;
+  final themeMode = ValueNotifier(await ThemePrefs.load(filesRoot));
+  themeMode.addListener(() => ThemePrefs.save(filesRoot, themeMode.value));
   final device = await DeviceInfo.fetch();
   AppLogger.log(
     'Device',
@@ -33,34 +40,28 @@ Future<void> main() async {
     return true;
   };
 
-  runApp(const RootHelperApp());
+  runApp(RootHelperApp(themeMode: themeMode));
 }
 
 class RootHelperApp extends StatefulWidget {
-  const RootHelperApp({super.key});
+  const RootHelperApp({super.key, required this.themeMode});
+
+  final ValueNotifier<ThemeMode> themeMode;
 
   @override
   State<RootHelperApp> createState() => _RootHelperAppState();
 }
 
 class _RootHelperAppState extends State<RootHelperApp> {
-  final _themeMode = ValueNotifier(ThemeMode.system);
-
-  late final GoRouter _router = buildRouter(themeMode: _themeMode);
-
-  @override
-  void dispose() {
-    _themeMode.dispose();
-    super.dispose();
-  }
+  late final GoRouter _router = buildRouter(themeMode: widget.themeMode);
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
-      valueListenable: _themeMode,
+      valueListenable: widget.themeMode,
       builder: (context, mode, _) {
         return MaterialApp.router(
-          title: 'Geergit Root Helper',
+          title: 'GRoot Helper',
           debugShowCheckedModeBanner: false,
           themeMode: mode,
           theme: AppTheme.fromBrightness(Brightness.light),

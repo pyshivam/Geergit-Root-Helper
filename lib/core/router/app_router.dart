@@ -5,6 +5,7 @@ import '../../features/home/screens/home_tab_screen.dart';
 import '../../features/patch/screens/patch_flow_screen.dart';
 import '../../features/patch/screens/patch_guide_screen.dart';
 import '../../features/patch/screens/patch_landing_screen.dart';
+import '../../features/settings/screens/credits_screen.dart';
 import '../../features/settings/screens/settings_tab_screen.dart';
 import '../../screens/home/home_screen.dart';
 
@@ -53,6 +54,10 @@ GoRouter buildRouter({required ValueNotifier<ThemeMode> themeMode}) {
       GoRoute(
         path: '/patch/guide',
         builder: (context, state) => const PatchGuideScreen(),
+      ),
+      GoRoute(
+        path: '/settings/credits',
+        builder: (context, state) => const CreditsScreen(),
       ),
       GoRoute(
         path: '/patch/flow',

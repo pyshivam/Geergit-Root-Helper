@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark-theme splash: background matches the app's designed dark
+         surface (#161C28, navy-tinted slate — see AppTheme._darkSurface),
+         ring inverts to paper. -->
+    <color name="grh_ring">#F4F6FD</color>
+    <color name="grh_splash_bg">#161C28</color>
+</resources>

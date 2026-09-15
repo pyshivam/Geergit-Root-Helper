@@ -244,7 +244,7 @@ class _PatchFlowScreenState extends State<PatchFlowScreen> {
     if (path == null) return;
     final report =
         '''
-Geergit Root Helper patch report
+GRoot Helper patch report
 mode: ${_simple ? 'simple' : 'advanced'}
 deviceKernel: ${_deviceKernel?.release ?? 'unknown'} (${_deviceKernel?.kmi ?? 'no KMI'})
 bootKernel: ${_bootKernel?.release ?? 'unknown'} (${_bootKernel?.kmi ?? 'no KMI'})

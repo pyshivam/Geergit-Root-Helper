@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Splash icon: the user-authored GRH mark (see
+     assets/launcher_icon/grh_logo.svg) at 0.34 scale on a transparent
+     field. The fill uses @color/grh_ring, which inverts with the
+     theme (navy on the light splash, paper on the dark splash) so the
+     mark always contrasts with @color/grh_splash_bg. The stroked
+     circle is baked to an even-odd ring (outer r=297, inner r=147);
+     the white play-notch triangle and the bottom bar are separate
+     subpaths. The notch only reads on light backgrounds — on the
+     dark splash it renders against the splash background color. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="1152dp"
+    android:height="1152dp"
+    android:viewportWidth="1152"
+    android:viewportHeight="1152">
+    <group
+        android:pivotX="576"
+        android:pivotY="576"
+        android:scaleX="0.34"
+        android:scaleY="0.34">
+        <path
+            android:pathData="M576 279 A297 297 0 1 0 576 873 A297 297 0 1 0 576 279 Z M576 723 A147 147 0 1 1 576 429 A147 147 0 1 1 576 723 Z"
+            android:fillColor="@color/grh_ring"
+            android:fillType="evenOdd" />
+        <path
+            android:pathData="M872.5 74 L1218.48 673.25 H526.523 Z"
+            android:fillColor="#FFFFFF" />
+        <path
+            android:pathData="M710 675 H859 V904 H710 Z"
+            android:fillColor="@color/grh_ring" />
+    </group>
+</vector>
