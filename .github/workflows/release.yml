@@ -2,10 +2,20 @@ name: Release
 
 # Releases build when WIP lands on main (dev -> main merge). The tag and
 # release name are created by the workflow from the stamped version.
+# Path filter: only Flutter/native/tooling changes need an APK rebuild —
+# docs, plans, and screenshots merge without CI.
 on:
   push:
     branches:
       - main
+    paths:
+      - "lib/**"
+      - "android/**"
+      - "test/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - ".fvmrc"
+      - ".github/workflows/**"
 
 permissions:
   contents: write
@@ -26,6 +36,12 @@ jobs:
         with:
           flutter-version: "3.47.4"
           cache: true
+
+      # Gradle dependency + configuration cache: biggest lever for CI
+      # build time on repeat runs.
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
 
       # versionName carries the commit it was built from:
       # 1.0.0+1 -> 1.0.0-abcdef0+1 (pubspec base + short SHA + build no).
