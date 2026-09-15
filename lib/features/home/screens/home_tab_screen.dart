@@ -108,7 +108,7 @@ class _PatchCtaCard extends StatelessWidget {
       color: scheme.primaryContainer,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => context.push('/patch/guide'),
+        onTap: () => context.push('/patch/flow?mode=simple'),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Row(
@@ -130,7 +130,7 @@ class _PatchCtaCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Step-by-step flashing guide',
+                      'Patch a stock boot.img with KernelSU — no root needed',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],

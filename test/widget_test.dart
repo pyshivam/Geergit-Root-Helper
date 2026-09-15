@@ -20,7 +20,7 @@ void main() {
     expect(find.text('Settings'), findsOneWidget);
   });
 
-  testWidgets('Patch CTA opens the step-by-step guide', (tester) async {
+  testWidgets('Patch CTA opens the patch flow', (tester) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(const RootHelperApp());
       await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -30,9 +30,22 @@ void main() {
     await tester.tap(find.text('Patch boot.img with AnyKernel zip'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Prepare'), findsOneWidget);
-    expect(find.text('Get the right zip'), findsOneWidget);
-    expect(find.text('Flash'), findsOneWidget);
-    expect(find.text('Verify'), findsOneWidget);
+    expect(find.text('Boot image first'), findsOneWidget);
+    expect(find.text('Choose boot.img'), findsOneWidget);
+  });
+
+  testWidgets('Patch tab shows simple and advanced mode cards', (tester) async {
+    await tester.runAsync(() async {
+      await tester.pumpWidget(const RootHelperApp());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    });
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Patch'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Simple — patch now'), findsOneWidget);
+    expect(find.text('Advanced — bring your own zip'), findsOneWidget);
+    expect(find.text('Flashing guide'), findsOneWidget);
   });
 }

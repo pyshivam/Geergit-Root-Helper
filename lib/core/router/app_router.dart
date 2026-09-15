@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/home/screens/home_tab_screen.dart';
+import '../../features/patch/screens/patch_flow_screen.dart';
 import '../../features/patch/screens/patch_guide_screen.dart';
+import '../../features/patch/screens/patch_landing_screen.dart';
 import '../../features/settings/screens/settings_tab_screen.dart';
 import '../../screens/home/home_screen.dart';
 
@@ -33,7 +35,7 @@ GoRouter buildRouter({required ValueNotifier<ThemeMode> themeMode}) {
             routes: [
               GoRoute(
                 path: '/patch',
-                builder: (context, state) => const PatchGuideScreen(),
+                builder: (context, state) => const PatchLandingScreen(),
               ),
             ],
           ),
@@ -51,6 +53,12 @@ GoRouter buildRouter({required ValueNotifier<ThemeMode> themeMode}) {
       GoRoute(
         path: '/patch/guide',
         builder: (context, state) => const PatchGuideScreen(),
+      ),
+      GoRoute(
+        path: '/patch/flow',
+        builder: (context, state) => PatchFlowScreen(
+          mode: state.uri.queryParameters['mode'] ?? 'simple',
+        ),
       ),
     ],
   );
