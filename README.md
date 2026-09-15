@@ -16,9 +16,13 @@
   <img src="https://img.shields.io/badge/flutter-3.47.4-blue" alt="Flutter 3.47.4">
 </p>
 
-| Home | Disclaimer | Settings | Credits |
+| Home | Boot selection | Zip selection | Patching |
 |---|---|---|---|
-| ![Home](docs/screenshots/home.png) | ![Disclaimer](docs/screenshots/disclaimer.png) | ![Settings](docs/screenshots/settings.png) | ![Credits](docs/screenshots/credits.png) |
+| ![Home](docs/screenshots/home.png) | ![Boot selection](docs/screenshots/boot-selection.png) | ![Zip selection](docs/screenshots/zip-selection.png) | ![Patching](docs/screenshots/patching.png) |
+
+| Patched & flash guide | Disclaimer | Settings | Credits |
+|---|---|---|---|
+| ![Patched](docs/screenshots/patched.png) | ![Disclaimer](docs/screenshots/disclaimer.png) | ![Settings](docs/screenshots/settings.png) | ![Credits](docs/screenshots/credits.png) |
 
 ## What it does
 
