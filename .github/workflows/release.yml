@@ -1,9 +1,11 @@
 name: Release
 
+# Releases build when WIP lands on main (dev -> main merge). The tag and
+# release name are created by the workflow from the stamped version.
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -60,6 +62,7 @@ jobs:
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.version.outputs.version }}
           name: ${{ steps.version.outputs.version }}
           files: build/app/outputs/flutter-apk/app-release.apk
           generate_release_notes: true
