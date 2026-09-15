@@ -398,6 +398,7 @@ output: ${output.path} (${output.lengthSync()} bytes)
   }
 
   Widget _buildZipStep(BuildContext context) {
+    final base = _bootKernel?.baseRelease ?? 'unknown version';
     final kmi = _bootKernel?.kmi ?? 'unknown KMI';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -410,7 +411,7 @@ output: ${output.path} (${output.lengthSync()} bytes)
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'AnyKernel zip for $kmi',
+                    'AnyKernel zip for $base (KMI $kmi)',
                     style: Theme.of(context).textTheme.titleMedium
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),
@@ -460,8 +461,10 @@ output: ${output.path} (${output.lengthSync()} bytes)
                   const SizedBox(height: 8),
                   Text(
                     _zip == null
-                        ? 'Pick the AnyKernel zip built for $kmi. Its kernel '
-                              'is compared against the boot image before patching.'
+                        ? 'Pick the AnyKernel zip built for $base '
+                              '(KMI $kmi) — match the patch level too, '
+                              'not just the KMI. Its kernel is compared '
+                              'against the boot image before patching.'
                         : 'Kernel entry: ${_zip!.kernelEntryName}',
                   ),
                 ],

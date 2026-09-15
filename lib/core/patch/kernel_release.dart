@@ -13,6 +13,18 @@ class KernelRelease {
   /// KMI, e.g. `android14-6.1`.
   final String kmi;
 
+  /// Release up to the Android level, e.g. `6.1.157-android14` — the
+  /// platform version a matching kernel is built for (no build suffix).
+  String get baseRelease {
+    final tokens = release
+        .split('-')
+        .takeWhile(
+          (t) => RegExp(r'^(\d+\.\d+(\.\d+)?|android\d+)$').hasMatch(t),
+        )
+        .toList();
+    return tokens.isEmpty ? release : tokens.join('-');
+  }
+
   /// Parses a release token (as found in uname or after "Linux version ").
   static KernelRelease? parse(String release) {
     final m = RegExp(r'(\d+\.\d+)(?:\S+)?(android\d+)').firstMatch(release);

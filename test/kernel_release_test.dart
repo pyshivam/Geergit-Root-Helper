@@ -21,6 +21,18 @@ void main() {
       expect(KernelRelease.parse('4.19.191-perf-gabcdef'), isNull);
       expect(KernelRelease.parse('not a version'), isNull);
     });
+
+    test('baseRelease strips the build suffix', () {
+      final k = KernelRelease.parse(
+        '6.1.157-android14-11-gbd23337e42e7-ab14791245',
+      );
+      expect(k!.baseRelease, '6.1.157-android14');
+      expect(
+        KernelRelease.parse('5.10.198-android12-9-00040-gc1b0b7c6a4d3')!
+            .baseRelease,
+        '5.10.198-android12',
+      );
+    });
   });
 
   group('KernelRelease.parseFromKernelBytes', () {
