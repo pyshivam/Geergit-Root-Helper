@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
@@ -90,32 +89,36 @@ class _PatchFlowScreenState extends State<PatchFlowScreen> {
   }
 
   Future<void> _pickBootImage() async {
-    // readAsByteStream: file bytes never cross the platform channel — a
-    // 64MB boot.img OOMs otherwise (file_selector was tried first and
-    // ships the whole file through its Pigeon codec; confirmed on device).
-    final files = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['img'],
+    // First-party SAF pick (MainActivity pickFile): the picked document is
+    // copied straight into the patch workspace — no cache-copy, and no
+    // file_picker, whose cache-copy threw unknown_path on stale
+    // DocumentsUI results (picker auto-returning a phantom URI right
+    // after app start).
+    final root = await _filesRoot;
+    final workspace = Directory(
+      '$root/patchwork/${DateTime.now().millisecondsSinceEpoch}',
     );
-    if (files.isEmpty) return;
-    final file = files.single;
-    final stream = file.readAsByteStream();
+    workspace.createSync(recursive: true);
+    final target = '${workspace.path}/picked-boot.img';
+    AppLogger.log('PatchFlow', 'picking boot image…');
+    final picked = await FileExport.pickTo(targetPath: target);
+    if (!mounted) return;
+    if (FileExport.pickError != null) {
+      setState(() => _error = 'Pick failed: ${FileExport.pickError}');
+      return;
+    }
+    if (picked == null) return; // user cancelled
+    final boot = File(picked);
     AppLogger.log(
       'PatchFlow',
       '===== PATCH TRY mode=${widget.mode} =====\n'
-          'picked boot.img: ${file.name}',
+          'picked boot.img: ${boot.path.split('/').last} '
+          '(${boot.lengthSync()} bytes)',
     );
     await _run('Unpacking boot image…', () async {
-      final root = await _filesRoot;
-      final workspace = Directory(
-        '$root/patchwork/${DateTime.now().millisecondsSinceEpoch}',
-      );
       final info = await _deviceInfo;
       final magiskboot = Magiskboot(abis: info.abis);
       final patcher = BootPatcher(magiskboot: magiskboot, workDir: workspace);
-      workspace.createSync(recursive: true);
-      final boot = File('${workspace.path}/picked-boot.img');
-      await boot.openWrite().addStream(stream);
       final kernel = await patcher.unpackBootImage(boot);
       final deviceKernel = KernelRelease.parse(info.kernelVersion);
       if (!mounted) return;
@@ -190,15 +193,19 @@ class _PatchFlowScreenState extends State<PatchFlowScreen> {
   }
 
   Future<void> _pickZip() async {
-    final files = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['zip'],
-    );
-    if (files.isEmpty) return;
-    final file = files.single;
-    await _run('Reading ${file.name}…', () async {
-      final chunks = await file.readAsByteStream().toList();
-      _loadZipBytes(chunks.expand((c) => c).toList());
+    final root = await _filesRoot;
+    final target =
+        '$root/patchwork/picked-${DateTime.now().millisecondsSinceEpoch}.zip';
+    AppLogger.log('PatchFlow', 'picking AnyKernel zip…');
+    final picked = await FileExport.pickTo(targetPath: target);
+    if (!mounted) return;
+    if (FileExport.pickError != null) {
+      setState(() => _error = 'Pick failed: ${FileExport.pickError}');
+      return;
+    }
+    if (picked == null) return; // user cancelled
+    await _run('Reading ${picked.split('/').last}…', () async {
+      _loadZipBytes(await File(picked).readAsBytes());
     });
   }
 

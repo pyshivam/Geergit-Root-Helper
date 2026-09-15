@@ -24,4 +24,23 @@ class FileExport {
       return null;
     }
   }
+
+  /// Opens the system document picker and copies the picked document to
+  /// [targetPath] in the app workspace. Returns the target path, null when
+  /// cancelled, or null with [pickError] set when the pick failed (e.g. a
+  /// stale picker result the provider can no longer open).
+  static String? pickError;
+
+  static Future<String?> pickTo({required String targetPath}) async {
+    if (!Platform.isAndroid) return null;
+    pickError = null;
+    try {
+      return await _channel.invokeMethod<String>('pickFile', {
+        'targetPath': targetPath,
+      });
+    } on PlatformException catch (e) {
+      pickError = e.message ?? e.code;
+      return null;
+    }
+  }
 }

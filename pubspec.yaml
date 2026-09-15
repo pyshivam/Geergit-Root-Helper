@@ -40,7 +40,6 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^1.6.0
   archive: ^4.3.0
-  file_picker: ^13.0.0
   url_launcher: ^6.3.2
   package_info_plus: ^10.2.1
 
