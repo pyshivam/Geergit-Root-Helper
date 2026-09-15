@@ -224,10 +224,10 @@ class _PatchFlowScreenState extends State<PatchFlowScreen> {
 
   Future<void> _patch() async {
     final patcher = _patcher;
-    final zipBytes = _zipBytes;
-    if (patcher == null || zipBytes == null) return;
+    final zip = _zip;
+    if (patcher == null || zip == null) return;
     await _run('Patching boot image…', () async {
-      final output = await patcher.patch(zipBytes);
+      final output = await patcher.patch(zip.kernelBytes);
       if (!mounted) return;
       setState(() {
         _output = output;

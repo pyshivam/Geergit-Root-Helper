@@ -81,3 +81,35 @@ state lives in the screen, services are plain classes under
 - `MainActivity`: `exportFile` channel method (SAF save)
 - Manifest: `INTERNET` permission
 - Report: patch result appended to `files/report.txt` (file-over-screenshots rule)
+
+## Field test — 2026-09-15, Pixel 7 (panther, Android 17, unrooted)
+
+First flash of an app-produced image **bootlooped** (device fell back to
+bootloader). Root cause was an app bug, not the kernel: the flow passed
+the whole AnyKernel zip (`_zipBytes`) to `BootPatcher.patch()` instead of
+the extracted kernel entry (`_zip.kernelBytes`), so the repacked boot
+image contained a zip file (`PK\x03\x04`) as its "kernel" — invisible to
+the old verification, which only checked output size and md5.
+
+Fixes:
+- `patch_flow_screen.dart`: patch with `zip.kernelBytes`.
+- `boot_patcher.dart`: `looksLikeKernelImage()` guard — ARM64 Image
+  magic (u32 LE `0x644D5241` at offset 56) — rejects non-kernel
+  payloads before repack. Regression test in `test/boot_patcher_test.dart`
+  pins the exact failure shape (full zip bytes must not pass).
+
+Second flash of the fixed image: **boots clean** —
+`uname -r` = `6.1.157-android14-Wild`, KernelSU manager reports
+**Working** (driver 32615-2, GKI mode, SELinux Enforcing). Recovery
+proven in the same session: A/B slot dance + local stock boot.img
+restores stock in minutes.
+
+Notes:
+- `WildKernels/Pixel_KernelSU_SUSFS` exists but has no releases; the
+  generic `GKI_KernelSU_SUSFS` zip works on Pixel 7.
+- `WildKernels/Pixel_Kernels` is a source/build repo, no zips.
+- KernelSU does not serve `su` to the adb shell (uid 2000); root is
+  granted per-app via the manager. "Working" in the manager is the
+  device-side proof.
+- Manager/driver version skew (manager 32601 vs driver 32615) shows a
+  warning banner; cosmetic — update the manager APK to match.
