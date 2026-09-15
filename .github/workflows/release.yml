@@ -43,17 +43,23 @@ jobs:
         with:
           cache-read-only: false
 
-      # versionName carries the commit it was built from:
-      # 1.0.0+1 -> 1.0.0-abcdef0+1 (pubspec base + short SHA + build no).
-      - name: Stamp version with commit SHA
+      # versionName carries the commit it was built from and a build
+      # number that bumps on every release:
+      # 1.0.0+1 -> 1.0.0-abcdef0+2 -> 1.0.0-1234567+3 ...
+      # Base semver comes from pubspec; build number is max(existing)+1.
+      - name: Stamp version with commit SHA and bump build
         id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           BASE=$(grep '^version:' pubspec.yaml | sed 's/version: *//; s/+.*//')
-          BUILD=$(grep '^version:' pubspec.yaml | sed 's/.*+//')
-          STAMPED="$BASE-${GITHUB_SHA::7}+$BUILD"
+          LAST=$(gh release list --limit 100 --json tagName --jq \
+            '[.[] | select(.tagName | test("\\+[0-9]+$")) | .tagName | split("+")[1] | tonumber] | max // 0')
+          NEXT=$((LAST + 1))
+          STAMPED="$BASE-${GITHUB_SHA::7}+$NEXT"
           sed -i "s/^version:.*/version: $STAMPED/" pubspec.yaml
           echo "version=$STAMPED" >> "$GITHUB_OUTPUT"
-          echo "Stamped version: $STAMPED"
+          echo "Stamped version: $STAMPED (build $NEXT)"
 
       - name: Quality gate
         run: |
@@ -80,5 +86,10 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: ${{ steps.version.outputs.version }}
+          body: |
+            📋 Curated history: [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)
+
+            ## Changes since the previous release
           files: build/app/outputs/flutter-apk/app-release.apk
+          # Auto-generates the per-commit change list, appended below the body.
           generate_release_notes: true
