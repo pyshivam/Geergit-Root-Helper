@@ -55,7 +55,8 @@ class SettingsTabScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Patch a stock boot.img with KernelSU kernels — no root needed. Flash at your own risk.',
+            'Patch a stock boot.img with KernelSU-family kernels — no root '
+            'needed. Flash at your own risk.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall,
           ),

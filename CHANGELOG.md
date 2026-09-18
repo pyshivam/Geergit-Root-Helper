@@ -4,6 +4,19 @@ All notable changes to GRoot Helper are documented here. Release builds are
 versioned `1.0.0-<commit>+<build>` — the build number increments on every
 release; the commit identifies exactly what was built.
 
+## Unreleased
+
+- **Choose your root manager** — Simple mode lists every KernelSU-family
+  build the release publishes for your kernel (KernelSU, KernelSU-Next,
+  ReSukiSU…) and patches with the one you pick. Only the newest release
+  that has your kernel is offered, so the list stays short.
+- **Supporting downloads** — the manager app to install after flashing
+  (plain and spoofed builds) plus the release's module zips are savable
+  from the patch page. Prebuilt boot images and image bundles are never
+  offered.
+- Boot-image kernel detection no longer trips over the `Linux version %s`
+  printk format string that sits ahead of the real banner.
+
 ## [1.0.0] — initial public release
 
 - Patch a stock `boot.img` with KernelSU on-device, no root and no PC

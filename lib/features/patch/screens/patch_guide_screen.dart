@@ -58,8 +58,9 @@ class _PatchGuideScreenState extends State<PatchGuideScreen> {
       icon: Icons.verified_outlined,
       points: [
         'First boot takes a little longer — give it a minute.',
-        'KernelSU Manager must show “Working”. That status is the '
-            'proof: the manager queried the in-kernel driver.',
+        'Your root manager (KernelSU, KernelSU-Next, ReSukiSU…) must show '
+            '“Working”. That status is the proof: the manager queried the '
+            'in-kernel driver.',
         'Root is granted per app in the manager’s Superuser tab. `su` '
             'is intentionally not served to the adb shell.',
       ],

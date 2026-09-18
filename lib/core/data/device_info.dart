@@ -29,7 +29,7 @@ class DeviceInfo {
 
   static Future<DeviceInfo> fetch() async {
     // /proc/version is filterable (root-helper stealth stacks rewrite it);
-    // uname().release matches what KernelSU manager shows.
+    // uname().release matches what root managers (KernelSU et al.) show.
     if (!Platform.isAndroid) {
       return DeviceInfo(
         model: _unavailable,

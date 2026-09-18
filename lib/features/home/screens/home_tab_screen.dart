@@ -185,7 +185,8 @@ class _PatchCtaCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Patch a stock boot.img with KernelSU — no root needed',
+                      'Patch a stock boot.img with a KernelSU-family '
+                      'kernel — no root needed',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],

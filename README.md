@@ -5,7 +5,7 @@
 <h1 align="center">GRoot Helper</h1>
 
 <p align="center">
-  Patch a stock <code>boot.img</code> with KernelSU — <strong>no root needed</strong>.
+  Patch a stock <code>boot.img</code> with a KernelSU-family kernel — <strong>no root needed</strong>.
 </p>
 
 <p align="center">
@@ -26,9 +26,9 @@
 
 ## What it does
 
-GRoot Helper patches a stock Android `boot.img` with [KernelSU](https://github.com/tiann/KernelSU) — entirely on-device, without requiring root. You get a rooted boot image to fastboot-flash, without a PC and without touching your system partition.
+GRoot Helper patches a stock Android `boot.img` with a [KernelSU](https://github.com/tiann/KernelSU)-family kernel — KernelSU, KernelSU-Next or ReSukiSU, whichever you pick — entirely on-device, without requiring root. You get a rooted boot image to fastboot-flash, without a PC and without touching your system partition.
 
-The app downloads a prebuilt AnyKernel zip from the [Wild Kernels GKI repo](https://github.com/WildKernels/GKI_KernelSU_SUSFS), unpacks your stock `boot.img` with `magiskboot`, patches it at exactly the zip's patch level, and repacks it — the same recipe Magisk/KernelSU flash zips use, driven from a phone UI.
+The app lists the prebuilt AnyKernel builds the [Wild Kernels repos](https://github.com/WildKernels/GKI_KernelSU_SUSFS) publish for your kernel's exact patch level, unpacks your stock `boot.img` with `magiskboot`, swaps the kernel for the build you selected, and repacks it — the same recipe Magisk/KernelSU flash zips use, driven from a phone UI. The matching manager app and the release's module zips are downloadable from the same page.
 
 > ⚠️ **Flashing can brick your device.** A wrong boot image can permanently brick your device, wipe data, or void warranty. Only flash images built for your exact device model and build. The app shows a risk disclaimer on first launch — read it.
 
@@ -50,8 +50,8 @@ The app downloads a prebuilt AnyKernel zip from the [Wild Kernels GKI repo](http
 ## How patching works
 
 ```
-stock boot.img ──► magiskboot unpack ──► patch at zip's patch level
-                                          (KernelSU kernel + ramdisk)
+stock boot.img ──► magiskboot unpack ──► swap in the chosen root's kernel
+                                          (KernelSU-family kernel)
                  ──► magiskboot repack ──► patched boot.img
                  ──► fastboot flash (guide in-app)
 ```
@@ -62,8 +62,9 @@ The patcher validates that the input really is an ARM64 kernel image before touc
 
 1. Get your stock `boot.img` (extract from the factory image for your exact build).
 2. Open GRoot Helper → **Patch boot.img with AnyKernel zip**.
-3. Simple: pick the boot image, confirm the zip the app selects. Advanced: also pick your zip.
-4. Follow the flashing guide to fastboot-flash the patched image.
+3. Simple: pick the boot image, then pick the root manager to patch for (KernelSU, KernelSU-Next, ReSukiSU…). Advanced: also pick your own zip.
+4. Optionally save the matching manager app and the release's module zips from the same page.
+5. Follow the flashing guide to fastboot-flash the patched image, then install the manager app you saved.
 
 Requires a GKI 2.0 device (kernel 5.10+) for the generic zips; Pixel/Samsung/OnePlus repos cover more.
 

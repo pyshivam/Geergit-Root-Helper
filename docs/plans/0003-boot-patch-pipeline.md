@@ -1,7 +1,7 @@
 # 0003 — Boot image patcher (no root)
 
 Turn the Patch tab from a read-only guide into the actual patcher: user
-supplies a stock `boot.img`, the app swaps in a KernelSU/SUSFS AnyKernel
+supplies a stock `boot.img`, the app swaps in a KernelSU-family AnyKernel
 kernel and repacks, producing a patched image the user flashes from
 fastboot. **No root is required or requested** — everything runs in the
 app sandbox plus `magiskboot` as a child process.

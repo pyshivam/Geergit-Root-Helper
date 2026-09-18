@@ -20,8 +20,9 @@ class PatchLandingScreen extends StatelessWidget {
             color: scheme.primaryContainer,
             title: 'Simple — patch now',
             subtitle:
-                'Pick your stock boot.img. The matching KernelSU '
-                'AnyKernel zip is fetched and verified automatically.',
+                'Pick your stock boot.img. The KernelSU-family AnyKernel '
+                'builds published for your kernel are listed — you choose '
+                'which root to patch for.',
             onTap: () => context.push('/patch/flow?mode=simple'),
           ),
           const SizedBox(height: 16),

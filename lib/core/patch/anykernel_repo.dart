@@ -6,8 +6,8 @@ import '../logging/app_logger.dart';
 import 'kernel_release.dart';
 import 'root_manager.dart';
 
-/// Fetches KernelSU/SUSFS AnyKernel zips from the WildKernels release
-/// repos and matches them against a boot image's KMI.
+/// Fetches the KernelSU-family AnyKernel builds from the WildKernels
+/// release repos and matches them against a boot image's KMI.
 class AnyKernelRepo {
   AnyKernelRepo({String? manufacturer}) : repo = _repoFor(manufacturer ?? '');
 
@@ -318,7 +318,7 @@ class SupportAsset {
   final bool spoofed;
 }
 
-/// A downloadable KernelSU/SUSFS build for one root manager.
+/// A downloadable kernel build for one root manager.
 class RemoteZip {
   const RemoteZip({
     required this.name,
