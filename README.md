@@ -38,6 +38,7 @@ The app downloads a prebuilt AnyKernel zip from the [Wild Kernels GKI repo](http
   - **Simple** — pick your stock `boot.img`; the app finds every root manager build published for your kernel's patch level (KernelSU, KernelSU-Next, ReSukiSU…) and you choose which root to patch for.
   - **Advanced** — bring your own AnyKernel zip (any Wild Kernels repo: GKI, Pixel/Sultan, Samsung, OnePlus).
 - **On-device patching** — `magiskboot` runs inside the app via JNI (W^X-safe, unrooted-friendly); nothing leaves the device.
+- **Supporting downloads** — the manager app to install after flashing (including its spoofed build) and the module zips published with the kernel, saved to storage from the same page. Kernel payloads (prebuilt boot images, image bundles) are never offered.
 - **Zip-step prompts** — every flash decision shows the kernel patch level you're about to apply.
 - **Flashing guide** — a step-by-step guide from patched image to fastboot flash.
 - **File-based session logging** — every patch try is logged to on-device files with crash hooks and device facts; exportable as a zip via Android's share sheet (10 sessions retained).

@@ -160,11 +160,77 @@ class AnyKernelRepo {
     return found;
   }
 
-  /// Every root manager build available for [release] (the full kernel
-  /// release string from the boot image, e.g. `6.1.157-android14-11-gb6a3e…`),
-  /// newest release first and one entry per manager. Empty when nothing
-  /// matches.
-  Future<List<RemoteZip>> findMatchingZips(String release) async {
+  /// Manager APKs and module zips published by the release line.
+  ///
+  /// These are not kernel-specific (a manager app or a metamodule fits any
+  /// kernel), so the newest release carrying any of them wins. Manager APKs
+  /// are labelled with the manager they belong to and whether they are the
+  /// spoofed build.
+  static List<SupportAsset> supportAssets(Iterable<ReleaseAsset> assets) {
+    for (final releaseAssets in _byRelease(assets)) {
+      final found = <SupportAsset>[];
+      for (final asset in releaseAssets) {
+        final lower = asset.name.toLowerCase();
+        if (lower.endsWith('.apk')) {
+          found.add(
+            SupportAsset(
+              name: asset.name,
+              size: asset.size,
+              releaseTag: asset.tag,
+              downloadUrl: asset.url,
+              kind: SupportKind.managerApk,
+              manager: RootManager.of(lower)?.name,
+              spoofed: lower.contains('spoofed'),
+            ),
+          );
+        } else if (lower.endsWith('.zip') && !isKernelPayload(lower)) {
+          found.add(
+            SupportAsset(
+              name: asset.name,
+              size: asset.size,
+              releaseTag: asset.tag,
+              downloadUrl: asset.url,
+              kind: SupportKind.moduleZip,
+              manager: RootManager.of(lower)?.name,
+            ),
+          );
+        }
+      }
+      if (found.isNotEmpty) {
+        found.sort((a, b) {
+          if (a.kind != b.kind) return a.kind.index - b.kind.index;
+          return a.name.compareTo(b.name);
+        });
+        return found;
+      }
+    }
+    return const [];
+  }
+
+  /// Anything in a release that carries a kernel rather than supporting it:
+  /// the AnyKernel3 builds, the prebuilt boot images, the image bundles.
+  static bool isKernelPayload(String assetNameLower) =>
+      isKernelSwapZip(assetNameLower) ||
+      assetNameLower.contains('-boot') ||
+      assetNameLower.contains('kernelimages');
+
+  /// Supporting downloads relevant to one root manager: that manager's
+  /// apps (plain and spoofed), plus every module zip.
+  static List<SupportAsset> supportForManager(
+    List<SupportAsset> all,
+    String? manager,
+  ) => all
+      .where(
+        (a) => switch (a.kind) {
+          SupportKind.moduleZip => true,
+          SupportKind.managerApk => a.manager == manager,
+        },
+      )
+      .toList();
+
+  /// Kernel builds and supporting downloads for one boot image kernel, in
+  /// a single GitHub lookup.
+  Future<ReleaseSearch> search(String release) async {
     AppLogger.log('AnyKernelRepo', 'searching $repo for "$release"');
     final res = await http.get(
       Uri.parse('$_base/$repo/releases'),
@@ -189,24 +255,68 @@ class AnyKernelRepo {
         ));
       }
     }
-    final found = variants(
+    final kernelBuilds = variants(
       assets,
       release: release,
       kmi: KernelRelease.parse(release)?.kmi ?? release,
     );
+    final support = supportAssets(assets);
     AppLogger.log(
       'AnyKernelRepo',
-      found.isEmpty
+      kernelBuilds.isEmpty
           ? 'no match for "$release" in $repo'
-          : 'found ${found.length} root manager build(s) for "$release": '
-                '${found.map((z) => '${z.manager}${z.patchable ? '' : ' (not patchable)'}').join(', ')}',
+          : 'found ${kernelBuilds.length} build(s) for "$release": '
+                '${kernelBuilds.map((z) => '${z.manager}${z.patchable ? '' : ' (not patchable)'}').join(', ')}',
     );
-    return found;
+    AppLogger.log(
+      'AnyKernelRepo',
+      support.isEmpty
+          ? 'no supporting downloads in $repo'
+          : 'supporting downloads (${support.first.releaseTag}): '
+                '${support.map((a) => a.name).join(', ')}',
+    );
+    return (kernelBuilds: kernelBuilds, support: support);
   }
 }
 
 /// One release asset, as the GitHub API reports it.
 typedef ReleaseAsset = ({String name, int size, String tag, String url});
+
+/// Kernel builds and supporting downloads for one boot image kernel, from
+/// a single release lookup.
+typedef ReleaseSearch = ({
+  List<RemoteZip> kernelBuilds,
+  List<SupportAsset> support,
+});
+
+/// What a [SupportAsset] is for.
+enum SupportKind { managerApk, moduleZip }
+
+/// A downloadable asset that supports the patch: the manager app to install
+/// after flashing, or a module zip to flash in that manager.
+class SupportAsset {
+  const SupportAsset({
+    required this.name,
+    required this.size,
+    required this.releaseTag,
+    required this.downloadUrl,
+    required this.kind,
+    this.manager,
+    this.spoofed = false,
+  });
+
+  final String name;
+  final int size;
+  final String releaseTag;
+  final String downloadUrl;
+  final SupportKind kind;
+
+  /// The manager the asset belongs to, when the name identifies one.
+  final String? manager;
+
+  /// Spoofed manager builds (hidden from other apps' package lookups).
+  final bool spoofed;
+}
 
 /// A downloadable KernelSU/SUSFS build for one root manager.
 class RemoteZip {

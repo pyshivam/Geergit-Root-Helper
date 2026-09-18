@@ -83,6 +83,28 @@ release, and anything that does match without being an AnyKernel3 build is
 listed but not selectable. No match at all → error card pointing to
 Advanced mode.
 
+## Supporting downloads
+
+The same release publishes things that are not kernel builds, and the
+patch page offers them under the manager choice, scoped to the selected
+manager:
+
+- **Manager APKs** — `KernelSU_v3.3.0-…-release.apk`,
+  `KernelSU_Next_v3.3.0-…-release.apk`, `ReSukiSU_v4.2.0-rc1-…-release.apk`
+  and their `-spoofed-` twins. The manager app has to match the kernel it
+  sits on, so only the builds labelled with the selected manager are
+  listed; spoofed builds are labelled as such.
+- **Module zips** — everything else ending in `.zip` in that release
+  (`NoMount-Metamodule.zip`), i.e. flashable-in-manager extras. Kernel
+  payloads (`KernelImages.zip`, `…-boot.img`, `…-AnyKernel3-{gz,lz4}.zip`)
+  are not offered here.
+
+The newest release that carries any of these wins, so the list does not
+depend on the kernel line. Downloads land in `files/downloads/` and are
+handed to the user with the same SAF save flow as the patched boot image
+(`FileExport.export`). Prebuilt boot images in the release are deliberately
+not offered — this app's contract is patching the user's own stock image.
+
 ## New dependencies (required, user-requested feature)
 
 `file_picker` (pick boot.img / zip — with `withData: false, withReadStream:

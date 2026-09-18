@@ -52,6 +52,7 @@ class _PatchFlowScreenState extends State<PatchFlowScreen> {
   AnyKernelZip? _zip;
   List<RemoteZip> _remoteZips = const [];
   RemoteZip? _remoteZip;
+  List<SupportAsset> _support = const [];
   List<int>? _zipBytes;
   KernelRelease? _zipKernel;
   bool _zipMatchesBoot = false;
@@ -160,8 +161,9 @@ class _PatchFlowScreenState extends State<PatchFlowScreen> {
     }
     await _run('Searching WildKernels releases for $release…', () async {
       final info = await _deviceInfo;
-      final zips = await AnyKernelRepo(manufacturer: info.manufacturer)
-          .findMatchingZips(release);
+      final search = await AnyKernelRepo(manufacturer: info.manufacturer)
+          .search(release);
+      final zips = search.kernelBuilds;
       if (!mounted) return;
       if (zips.isEmpty) {
         setState(
@@ -172,11 +174,50 @@ class _PatchFlowScreenState extends State<PatchFlowScreen> {
       }
       setState(() {
         _remoteZips = zips;
+        _support = search.support;
         _remoteZip = zips.firstWhere(
           (z) => z.patchable,
           orElse: () => zips.first,
         );
       });
+    });
+  }
+
+  /// Supporting downloads for the root manager currently selected.
+  List<SupportAsset> get _supportForSelection =>
+      AnyKernelRepo.supportForManager(_support, _remoteZip?.manager);
+
+  Future<void> _saveSupport(SupportAsset asset) async {
+    await _run('Downloading ${asset.name}…', () async {
+      final res = await http.get(
+        Uri.parse(asset.downloadUrl),
+        headers: const {'User-Agent': 'geergit-root-helper'},
+      );
+      if (res.statusCode != 200) {
+        throw AnyKernelRepoException('Download failed: HTTP ${res.statusCode}');
+      }
+      final root = await _filesRoot;
+      final dir = Directory('$root/downloads')..createSync(recursive: true);
+      final file = File('${dir.path}/${asset.name}');
+      await file.writeAsBytes(res.bodyBytes, flush: true);
+      AppLogger.log(
+        'PatchFlow',
+        'downloaded ${asset.name}: ${res.bodyBytes.length} bytes -> ${file.path}',
+      );
+      final uri = await FileExport.export(
+        sourcePath: file.path,
+        displayName: asset.name,
+      );
+      AppLogger.log(
+        'PatchFlow',
+        'saved ${asset.name} -> ${uri ?? 'cancelled'}',
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(uri == null ? 'Save cancelled' : 'Saved ${asset.name}'),
+        ),
+      );
     });
   }
 
@@ -459,6 +500,27 @@ output: ${output.path} (${output.lengthSync()} bytes)
               icon: const Icon(Icons.download),
               label: Text('Download ${_remoteZip!.manager} and patch'),
             ),
+          if (_zipBytes == null && _supportForSelection.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Text(
+              'Supporting downloads',
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'The manager app to install after flashing, and the module '
+              'zips shipped with it — saved to storage, nothing is installed.',
+            ),
+            ..._supportForSelection.map(
+              (asset) => _SupportTile(
+                key: Key('support-${asset.name}'),
+                asset: asset,
+                enabled: _busyLabel.isEmpty,
+                onSave: () => _saveSupport(asset),
+              ),
+            ),
+          ],
           if (_zipBytes != null) _buildZipVerified(context),
           TextButton(
             onPressed: () =>
@@ -702,6 +764,42 @@ class _ManagerTile extends StatelessWidget {
                   'with it',
       ),
       isThreeLine: zip.patchable,
+    );
+  }
+}
+
+/// One supporting download: a manager APK or a module zip.
+class _SupportTile extends StatelessWidget {
+  const _SupportTile({
+    super.key,
+    required this.asset,
+    required this.enabled,
+    required this.onSave,
+  });
+
+  final SupportAsset asset;
+  final bool enabled;
+  final VoidCallback onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    final isApk = asset.kind == SupportKind.managerApk;
+    final title = isApk
+        ? '${asset.manager ?? 'Manager'} app${asset.spoofed ? ' (spoofed)' : ''}'
+        : asset.name.replaceFirst(RegExp(r'\.zip$', caseSensitive: false), '');
+    return ListTile(
+      enabled: enabled,
+      title: Text(title),
+      subtitle: Text(
+        '${asset.name}\n'
+        '${(asset.size / 1048576).toStringAsFixed(1)} MB · '
+        '${asset.releaseTag}',
+      ),
+      isThreeLine: true,
+      trailing: TextButton(
+        onPressed: enabled ? onSave : null,
+        child: const Text('Save'),
+      ),
     );
   }
 }

@@ -38,16 +38,19 @@ class RootManager {
   ];
 
   /// Identifies the manager behind an asset name, or null when the name
-  /// matches none of the known builds.
+  /// matches none of the known builds. Manager APKs use underscores
+  /// (`KernelSU_Next_v3.3.0-…-release.apk`), kernel zips hyphens, so both
+  /// spellings are normalized before matching.
   ///
   /// Longest needle wins, so `kernelsu-next` never degrades to `kernelsu`
   /// and `resukisu` (a SukiSU fork) never to `sukisu`.
   static RootManager? of(String assetNameLower) {
+    final name = assetNameLower.replaceAll('_', '-');
     RootManager? hit;
     var hitLength = 0;
     for (final manager in all) {
       for (final needle in manager.needles) {
-        if (needle.length > hitLength && assetNameLower.contains(needle)) {
+        if (needle.length > hitLength && name.contains(needle)) {
           hit = manager;
           hitLength = needle.length;
         }

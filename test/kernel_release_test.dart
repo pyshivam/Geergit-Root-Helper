@@ -95,6 +95,24 @@ void main() {
       );
     });
 
+    test('labels manager APKs, which spell the name with underscores', () {
+      expect(
+        RootManager.of('kernelsu_next_v3.3.0-41-g39ba3821_33255-release.apk')
+            ?.name,
+        'KernelSU-Next',
+      );
+      expect(
+        RootManager.of(
+          'resukisu_v4.2.0-rc1-spoofed_35116-universal-release.apk',
+        )?.name,
+        'ReSukiSU',
+      );
+      expect(
+        RootManager.of('kernelsu_v3.3.0-19-gc72f294e_32620-release.apk')?.name,
+        'KernelSU',
+      );
+    });
+
     test('does not fold a fork into the project it forked', () {
       // Longest needle wins: `kernelsu-next` must not read as `kernelsu`,
       // `resukisu` must not read as `sukisu` (SukiSU-Ultra).
@@ -149,6 +167,104 @@ void main() {
 
     test('drops assets that match neither the release nor the KMI', () {
       expect(variants([asset('NoMount-Metamodule.zip')]), isEmpty);
+    });
+
+    test('lists the manager apps and module zips of the newest release', () {
+      final found = AnyKernelRepo.supportAssets([
+        asset(
+          'KernelSU_Next_v3.3.0-41-g39ba3821_33255-release.apk',
+          tag: 'r20',
+        ),
+        asset(
+          'KernelSU_Next_v3.3.0-41-g39ba3821-spoofed_33255-release.apk',
+          tag: 'r20',
+        ),
+        asset('KernelSU_v3.3.0-19-gc72f294e_32620-release.apk', tag: 'r20'),
+        asset('NoMount-Metamodule.zip', tag: 'r20'),
+        asset('AIO-REJ.zip', tag: 'v2.0.0-r19'),
+      ]);
+      expect(found.map((a) => a.kind).toSet(), {
+        SupportKind.managerApk,
+        SupportKind.moduleZip,
+      });
+      expect(
+        found
+            .where((a) => a.kind == SupportKind.managerApk)
+            .map((a) => a.manager),
+        ['KernelSU-Next', 'KernelSU-Next', 'KernelSU'],
+      );
+      expect(found.where((a) => a.spoofed).map((a) => a.name), [
+        'KernelSU_Next_v3.3.0-41-g39ba3821-spoofed_33255-release.apk',
+      ]);
+      // Manager apps first, then module zips; older releases drop out.
+      expect(found.last.name, 'NoMount-Metamodule.zip');
+      expect(found.any((a) => a.name == 'AIO-REJ.zip'), isFalse);
+    });
+
+    test('never offers kernel payloads as supporting downloads', () {
+      final found = AnyKernelRepo.supportAssets([
+        asset('6.1.157-android14-2025-12-KernelSU-AnyKernel3.zip', tag: 'r20'),
+        asset('WKSU-13780-android14-6.1.148-lts-KernelImages.zip', tag: 'r7'),
+        asset('NoMount-Metamodule.zip', tag: 'r20'),
+      ]);
+      expect(found.single.name, 'NoMount-Metamodule.zip');
+      for (final name in [
+        '6.1.157-android14-2025-12-KernelSU-AnyKernel3.zip',
+        'wkSU-13780-android14-6.1.148-lts-KernelImages.zip',
+        'WKSU-13861-android12-5.10.168-2023-04-boot-gz.img',
+      ]) {
+        expect(AnyKernelRepo.isKernelPayload(name.toLowerCase()), isTrue);
+      }
+    });
+
+    test('keeps only the chosen manager app, plus every module zip', () {
+      final all = AnyKernelRepo.supportAssets([
+        asset(
+          'KernelSU_Next_v3.3.0-41-g39ba3821_33255-release.apk',
+          tag: 'r20',
+        ),
+        asset(
+          'KernelSU_Next_v3.3.0-41-g39ba3821-spoofed_33255-release.apk',
+          tag: 'r20',
+        ),
+        asset('KernelSU_v3.3.0-19-gc72f294e_32620-release.apk', tag: 'r20'),
+        asset('NoMount-Metamodule.zip', tag: 'r20'),
+      ]);
+      expect(
+        AnyKernelRepo.supportForManager(
+          all,
+          'KernelSU-Next',
+        ).map((a) => a.name),
+        [
+          'KernelSU_Next_v3.3.0-41-g39ba3821-spoofed_33255-release.apk',
+          'KernelSU_Next_v3.3.0-41-g39ba3821_33255-release.apk',
+          'NoMount-Metamodule.zip',
+        ],
+      );
+      expect(
+        AnyKernelRepo.supportForManager(all, 'KernelSU').map((a) => a.name),
+        [
+          'KernelSU_v3.3.0-19-gc72f294e_32620-release.apk',
+          'NoMount-Metamodule.zip',
+        ],
+      );
+      // A legacy build with no manager token has no manager app published.
+      expect(
+        AnyKernelRepo.supportForManager(all, 'Bypass').map((a) => a.name),
+        ['NoMount-Metamodule.zip'],
+      );
+    });
+
+    test('returns nothing when a release carries no supporting downloads', () {
+      expect(
+        AnyKernelRepo.supportAssets([
+          asset(
+            '6.1.157-android14-2025-12-KernelSU-AnyKernel3.zip',
+            tag: 'r20',
+          ),
+        ]),
+        isEmpty,
+      );
     });
 
     test('marks a matching build that is no kernel swap unpatchable', () {
