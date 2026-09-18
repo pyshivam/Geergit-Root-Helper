@@ -33,23 +33,37 @@ class KernelRelease {
   }
 
   /// Finds the embedded version string in raw kernel image bytes.
+  ///
+  /// An Image carries the literal twice: the printk format string
+  /// `Linux version %s (%s)` sits ahead of the banner, so the first marker
+  /// is not necessarily the release — take the first token that parses.
   static KernelRelease? parseFromKernelBytes(List<int> bytes) {
     const marker = 'Linux version ';
-    final idx = _indexOfSublist(bytes, marker.codeUnits);
-    if (idx < 0) return null;
-    final start = idx + marker.length;
-    final end = (start + 160).clamp(0, bytes.length);
-    final slice = bytes.sublist(start, end);
-    final nul = slice.indexOf(0);
-    final line = String.fromCharCodes(nul >= 0 ? slice.sublist(0, nul) : slice);
-    final token = line.split(' ').firstOrNull;
-    if (token == null || token.isEmpty) return null;
-    return parse(token);
+    var from = 0;
+    while (true) {
+      final idx = _indexOfSublist(bytes, marker.codeUnits, from);
+      if (idx < 0) return null;
+      final start = idx + marker.length;
+      final end = (start + 160).clamp(0, bytes.length);
+      final slice = bytes.sublist(start, end);
+      final nul = slice.indexOf(0);
+      final line = String.fromCharCodes(
+        nul >= 0 ? slice.sublist(0, nul) : slice,
+      );
+      final token = line.split(' ').firstOrNull;
+      final parsed = (token == null || token.isEmpty) ? null : parse(token);
+      if (parsed != null) return parsed;
+      from = idx + marker.length;
+    }
   }
 
-  static int _indexOfSublist(List<int> haystack, List<int> needle) {
+  static int _indexOfSublist(
+    List<int> haystack,
+    List<int> needle, [
+    int from = 0,
+  ]) {
     outer:
-    for (var i = 0; i + needle.length <= haystack.length; i++) {
+    for (var i = from; i + needle.length <= haystack.length; i++) {
       for (var j = 0; j < needle.length; j++) {
         if (haystack[i + j] != needle[j]) continue outer;
       }

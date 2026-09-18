@@ -25,6 +25,9 @@ replace the kernel, do not inject LKMs.
    same regex family as ksud `parse_kmi`). Compare against the device
    uname release (already on `DeviceInfo.kernelVersion`). Mismatch →
    warning card, "Continue anyway" is explicit.
+   An Image carries the literal twice — the printk format string
+   `Linux version %s (%s)` sits ahead of `linux_banner` — so scan every
+   occurrence and take the first token that parses as a release.
 2. Zip kernel (advanced): extract the zip's kernel entry (`Image` /
    `zImage` / `kernel`, first match), parse its KMI, compare with the boot
    image KMI. Mismatch → warning card, continue is explicit.

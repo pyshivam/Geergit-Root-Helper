@@ -56,6 +56,21 @@ void main() {
       expect(k!.release, '5.15.123-android14-1-x');
     });
 
+    test('skips the printk format string printed ahead of the banner', () {
+      // A real Image (e.g. lz4_legacy GKI) holds `Linux version %s (%s)`
+      // before `linux_banner`; the format string alone must not count.
+      final bytes = [
+        ...'Linux version '.codeUnits,
+        ...'%s (%s)'.codeUnits,
+        0,
+        ...kernelWithVersion('5.15.189-android13-8-00004-g1c3825f8ac0a'),
+      ];
+      final k = KernelRelease.parseFromKernelBytes(bytes);
+      expect(k, isNotNull);
+      expect(k!.kmi, 'android13-5.15');
+      expect(k.release, '5.15.189-android13-8-00004-g1c3825f8ac0a');
+    });
+
     test('returns null when no version string exists', () {
       expect(KernelRelease.parseFromKernelBytes(List.filled(256, 0)), isNull);
     });
