@@ -1,8 +1,11 @@
 # Changelog
 
 All notable changes to GRoot Helper are documented here. Release builds are
-versioned `1.0.0-<commit>+<build>` — the build number increments on every
-release; the commit identifies exactly what was built.
+versioned `<version>-<commit>+<build>` — the patch version and the build
+number both advance on every release (`1.0.1-abcdef0+5`), and the commit
+identifies exactly what was built. To jump the version (minor/major), set
+`version:` in `pubspec.yaml` higher than the last release and the workflow
+picks it up.
 
 ## Unreleased
 
@@ -16,6 +19,9 @@ release; the commit identifies exactly what was built.
   offered.
 - Boot-image kernel detection no longer trips over the `Linux version %s`
   printk format string that sits ahead of the real banner.
+- Release versioning: the patch version now advances on every release
+  (`1.0.1`, `1.0.2`, …) instead of staying at `1.0.0`. Set `version:` in
+  `pubspec.yaml` higher than the last release to jump to a minor/major one.
 
 ## [1.0.0] — initial public release
 

@@ -12,6 +12,7 @@ on:
       - "lib/**"
       - "android/**"
       - "test/**"
+      - "scripts/**"
       - "pubspec.yaml"
       - "pubspec.lock"
       - ".fvmrc"
@@ -43,23 +44,18 @@ jobs:
         with:
           cache-read-only: false
 
-      # versionName carries the commit it was built from and a build
-      # number that bumps on every release:
-      # 1.0.0+1 -> 1.0.0-abcdef0+2 -> 1.0.0-1234567+3 ...
-      # Base semver comes from pubspec; build number is max(existing)+1.
-      - name: Stamp version with commit SHA and bump build
+      # versionName carries the version, the commit it was built from and a
+      # build number that bumps on every release:
+      #   1.0.0+1 -> 1.0.1-abcdef0+2 -> 1.0.2-1234567+3 ...
+      # `scripts/stamp_version.sh` bumps the patch level per release; edit
+      # `version:` in pubspec.yaml to jump further (1.1.0, 2.0.0).
+      - name: Stamp version with commit SHA, bump version and build
         id: version
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          BASE=$(grep '^version:' pubspec.yaml | sed 's/version: *//; s/+.*//')
-          LAST=$(gh release list --limit 100 --json tagName --jq \
-            '[.[] | select(.tagName | test("\\+[0-9]+$")) | .tagName | split("+")[1] | tonumber] | max // 0')
-          NEXT=$((LAST + 1))
-          STAMPED="$BASE-${GITHUB_SHA::7}+$NEXT"
-          sed -i "s/^version:.*/version: $STAMPED/" pubspec.yaml
+          STAMPED=$(bash scripts/stamp_version.sh)
           echo "version=$STAMPED" >> "$GITHUB_OUTPUT"
-          echo "Stamped version: $STAMPED (build $NEXT)"
 
       - name: Quality gate
         run: |
