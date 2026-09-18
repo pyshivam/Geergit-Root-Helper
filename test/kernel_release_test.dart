@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geergit_root_helper/core/patch/anykernel_repo.dart';
 import 'package:geergit_root_helper/core/patch/kernel_release.dart';
+import 'package:geergit_root_helper/core/patch/root_manager.dart';
 
 void main() {
   group('KernelRelease.parse', () {
@@ -73,6 +74,138 @@ void main() {
 
     test('returns null when no version string exists', () {
       expect(KernelRelease.parseFromKernelBytes(List.filled(256, 0)), isNull);
+    });
+  });
+
+  group('RootManager.of', () {
+    test('labels the GKI manager builds', () {
+      String? manager(String name) => RootManager.of(name)?.name;
+      const base = '6.1.157-android14-2025-12-';
+      expect(manager('${base}kernelsu-anykernel3.zip'), 'KernelSU');
+      expect(manager('${base}kernelsu-next-anykernel3.zip'), 'KernelSU-Next');
+      expect(manager('${base}resukisu-anykernel3.zip'), 'ReSukiSU');
+    });
+
+    test('labels the OnePlus KSUN build', () {
+      expect(
+        RootManager.of(
+          'ak3_op-ace-2-pro_a15_android13-5.15.149_ksun_33239_susfs_v2.2.0.zip',
+        )?.name,
+        'KernelSU-Next',
+      );
+    });
+
+    test('does not fold a fork into the project it forked', () {
+      // Longest needle wins: `kernelsu-next` must not read as `kernelsu`,
+      // `resukisu` must not read as `sukisu` (SukiSU-Ultra).
+      expect(RootManager.of('x-kernelsu-next-y.zip')?.name, isNot('KernelSU'));
+      expect(RootManager.of('x-resukisu-y.zip')?.name, 'ReSukiSU');
+    });
+
+    test('returns null for an asset that names no manager', () {
+      expect(RootManager.of('nomount-metamodule.zip'), isNull);
+    });
+  });
+
+  group('AnyKernelRepo.variants', () {
+    const release = '6.1.157-android14-11-gbd23337e42e7-ab14791245';
+    const kmi = 'android14-6.1';
+
+    ReleaseAsset asset(String name, {String tag = 'r20'}) =>
+        (name: name, size: 1024, tag: tag, url: 'https://example.test/$name');
+
+    List<RemoteZip> variants(List<ReleaseAsset> assets) =>
+        AnyKernelRepo.variants(assets, release: release, kmi: kmi);
+
+    test('lists every root manager published for the kernel', () {
+      final found = variants([
+        asset('6.1.157-android14-2025-12-KernelSU-AnyKernel3.zip'),
+        asset('6.1.157-android14-2025-12-KernelSU-Next-AnyKernel3.zip'),
+        asset('6.1.157-android14-2025-12-ReSukiSU-AnyKernel3.zip'),
+      ]);
+      expect(found.map((z) => z.manager), [
+        'KernelSU',
+        'KernelSU-Next',
+        'ReSukiSU',
+      ]);
+      expect(found.every((z) => z.patchable), isTrue);
+    });
+
+    test('keeps the newest build when a manager repeats', () {
+      final found = variants([
+        asset('6.1.157-android14-2025-12-KernelSU-AnyKernel3.zip', tag: 'r20'),
+        asset('6.1.157-android14-2025-11-KernelSU-AnyKernel3.zip', tag: 'r19'),
+      ]);
+      expect(found.single.releaseTag, 'r20');
+    });
+
+    test('prefers the exact patch level over a KMI-only build', () {
+      final found = variants([
+        asset('6.1.130-android14-2025-06-KernelSU-AnyKernel3.zip', tag: 'r18'),
+        asset('6.1.157-android14-2025-12-KernelSU-AnyKernel3.zip', tag: 'r20'),
+      ]);
+      expect(found.single.releaseTag, 'r20');
+    });
+
+    test('drops assets that match neither the release nor the KMI', () {
+      expect(variants([asset('NoMount-Metamodule.zip')]), isEmpty);
+    });
+
+    test('marks a matching build that is no kernel swap unpatchable', () {
+      final found = variants([asset('6.1.157-android14-2025-12-KernelSU.zip')]);
+      expect(found.single.manager, 'KernelSU');
+      expect(found.single.patchable, isFalse);
+    });
+
+    test('offers only the newest release that publishes for the kernel', () {
+      final found = variants([
+        asset('6.1.157-android14-2025-12-KernelSU-AnyKernel3.zip', tag: 'r20'),
+        asset('6.1.157-android14-2025-12-ReSukiSU-AnyKernel3.zip', tag: 'r19'),
+        asset('6.1.157-android14-2025-11-KernelSU-AnyKernel3.zip', tag: 'r18'),
+      ]);
+      expect(found.single.releaseTag, 'r20');
+      expect(found.single.manager, 'KernelSU');
+    });
+
+    test('caps the KMI fallback to the newest matching release too', () {
+      final found = variants([
+        // Second tag stands in for a release with the same KMI but another
+        // patch level; both are KMI-only matches for this boot image.
+        asset('6.1.112-android14-2024-11-Bypass-AnyKernel3.zip', tag: 'r8'),
+        asset('6.1.112-android14-2024-11-Normal-AnyKernel3.zip', tag: 'r8'),
+        asset('6.1.115-android14-2024-12-Bypass-AnyKernel3.zip', tag: 'r3'),
+      ]);
+      expect(found.map((z) => z.manager), ['Bypass', 'Normal']);
+      expect(found.every((z) => z.releaseTag == 'r8'), isTrue);
+    });
+
+    test('labels legacy builds that carry no manager token', () {
+      expect(
+        AnyKernelRepo.buildLabel('5.15.104-android13-2023-06-AnyKernel3.zip'),
+        'Other build',
+      );
+      expect(
+        AnyKernelRepo.buildLabel(
+          '5.15.104-android13-2023-06-Bypass-AnyKernel3.zip',
+        ),
+        'Bypass',
+      );
+      expect(
+        AnyKernelRepo.buildLabel(
+          'WKSU-13974-SUSFS_v1.5.12-android14-6.1.112-2024-11-Bypass-BBG-AnyKernel3.zip',
+        ),
+        'Bypass-BBG',
+      );
+    });
+
+    test('orders patchable builds first', () {
+      final found = variants([
+        asset('6.1.157-android14-2025-12-KernelSU.zip'),
+        asset('6.1.157-android14-2025-12-ReSukiSU-AnyKernel3.zip'),
+      ]);
+      expect(found.map((z) => z.manager), ['ReSukiSU', 'KernelSU']);
+      expect(found.first.patchable, isTrue);
+      expect(found.last.patchable, isFalse);
     });
   });
 

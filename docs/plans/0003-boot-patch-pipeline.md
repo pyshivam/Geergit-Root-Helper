@@ -59,8 +59,29 @@ the nightly release when magiskboot needs updating.
 Release list via GitHub API. Asset names carry the full release prefix
 (`6.1.157-android14-2025-12-KernelSU-AnyKernel3.zip`), matched in two
 passes: exact patch-level tokens of the boot image release first, KMI
-(`android14-6.1`) fallback. Prefers AnyKernel builds. No match → error
-card pointing to Advanced mode.
+(`android14-6.1`) fallback.
+
+A release carries **one asset per root manager per kernel build**
+(KernelSU, KernelSU-Next, ReSukiSU in the GKI repo; `…_KSUN_…` in the
+OnePlus repo). Simple mode lists one row per build available for the
+picked kernel and the user selects the root to patch for; the first
+patchable row is pre-selected so the flow still works in one tap.
+
+Only the **newest release that publishes anything for this kernel** is
+offered — walking the whole release history piled up 120 rows for a
+`android13-5.15` image, since the KMI fallback matches every historical
+release of the same line. Within that release a build appears once, and a
+kernel-swap build beats a non-kernel-swap one. Builds from the older
+WildKernels naming carry no manager token (`…-2023-06-Bypass-AnyKernel3.zip`)
+and are labeled from the name (`Bypass`, `Other build`).
+
+A row is patchable when it is an AnyKernel3 kernel-swap build — this app
+replaces the boot image kernel, which is exactly what those builds ship
+(registry: `lib/core/patch/root_manager.dart`). Non-AnyKernel assets in
+the same release (e.g. `NoMount-Metamodule.zip`) never match a kernel
+release, and anything that does match without being an AnyKernel3 build is
+listed but not selectable. No match at all → error card pointing to
+Advanced mode.
 
 ## New dependencies (required, user-requested feature)
 

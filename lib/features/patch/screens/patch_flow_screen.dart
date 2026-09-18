@@ -50,6 +50,7 @@ class _PatchFlowScreenState extends State<PatchFlowScreen> {
 
   // Zip state
   AnyKernelZip? _zip;
+  List<RemoteZip> _remoteZips = const [];
   RemoteZip? _remoteZip;
   List<int>? _zipBytes;
   KernelRelease? _zipKernel;
@@ -159,17 +160,23 @@ class _PatchFlowScreenState extends State<PatchFlowScreen> {
     }
     await _run('Searching WildKernels releases for $release…', () async {
       final info = await _deviceInfo;
-      final zip = await AnyKernelRepo(manufacturer: info.manufacturer)
-          .findMatchingZip(release);
+      final zips = await AnyKernelRepo(manufacturer: info.manufacturer)
+          .findMatchingZips(release);
       if (!mounted) return;
-      if (zip == null) {
+      if (zips.isEmpty) {
         setState(
           () => _error =
               'No zip matching $release found in the release repo — use Advanced mode with a zip you trust.',
         );
         return;
       }
-      setState(() => _remoteZip = zip);
+      setState(() {
+        _remoteZips = zips;
+        _remoteZip = zips.firstWhere(
+          (z) => z.patchable,
+          orElse: () => zips.first,
+        );
+      });
     });
   }
 
@@ -418,32 +425,39 @@ output: ${output.path} (${output.lengthSync()} bytes)
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'AnyKernel zip for $base (KMI $kmi)',
+                    'Root manager for $base (KMI $kmi)',
                     style: Theme.of(context).textTheme.titleMedium
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
-                  if (_remoteZip == null && _zipBytes == null)
+                  if (_remoteZips.isEmpty)
                     const Text('Searching the WildKernels release repo…')
-                  else if (_remoteZip != null && _zipBytes == null) ...[
-                    _InfoLine(label: 'Zip', value: _remoteZip!.name),
-                    _InfoLine(label: 'Release', value: _remoteZip!.releaseTag),
-                    _InfoLine(
-                      label: 'Size',
-                      value:
-                          '${(_remoteZip!.size / 1048576).toStringAsFixed(1)} MB',
+                  else
+                    Text(
+                      '${_remoteZips.where((z) => z.patchable).length} build(s) '
+                      'available for this kernel — pick the one you want, then '
+                      'install its manager app after flashing.',
                     ),
-                  ],
                 ],
               ),
             ),
           ),
+          if (_zipBytes == null)
+            ..._remoteZips.map(
+              (zip) => _ManagerTile(
+                key: Key('manager-${zip.manager}'),
+                zip: zip,
+                selected: zip == _remoteZip,
+                enabled: _busyLabel.isEmpty && zip.patchable,
+                onTap: () => setState(() => _remoteZip = zip),
+              ),
+            ),
           const SizedBox(height: 16),
           if (_remoteZip != null && _zipBytes == null)
             FilledButton.icon(
               onPressed: _busyLabel.isEmpty ? _downloadRemoteZip : null,
               icon: const Icon(Icons.download),
-              label: const Text('Download and patch'),
+              label: Text('Download ${_remoteZip!.manager} and patch'),
             ),
           if (_zipBytes != null) _buildZipVerified(context),
           TextButton(
@@ -534,7 +548,10 @@ output: ${output.path} (${output.lengthSync()} bytes)
                   _zipBytes = null;
                   _zipKernel = null;
                   _zipGateAcked = false;
-                  _remoteZip = null;
+                  _remoteZip = _remoteZips.firstWhere(
+                    (z) => z.patchable,
+                    orElse: () => _remoteZips.first,
+                  );
                 })
               : null,
           child: Text(_simple ? 'Search again' : 'Choose a different zip'),
@@ -647,6 +664,46 @@ class _KernelCompareCard extends StatelessWidget {
 
   static String _describe(KernelRelease? k) =>
       k == null ? 'unknown (unparseable)' : '${k.release}  ·  KMI ${k.kmi}';
+}
+
+/// One root manager build published for the picked kernel.
+class _ManagerTile extends StatelessWidget {
+  const _ManagerTile({
+    super.key,
+    required this.zip,
+    required this.selected,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  final RemoteZip zip;
+  final bool selected;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return ListTile(
+      enabled: enabled,
+      selected: selected,
+      onTap: enabled ? onTap : null,
+      leading: Icon(
+        selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+        color: enabled ? scheme.primary : scheme.outline,
+      ),
+      title: Text(zip.manager),
+      subtitle: Text(
+        zip.patchable
+            ? '${zip.name}\n'
+                  '${(zip.size / 1048576).toStringAsFixed(1)} MB · '
+                  '${zip.releaseTag}'
+            : 'Not an AnyKernel3 kernel-swap build — this app cannot patch '
+                  'with it',
+      ),
+      isThreeLine: zip.patchable,
+    );
+  }
 }
 
 class _InfoLine extends StatelessWidget {
