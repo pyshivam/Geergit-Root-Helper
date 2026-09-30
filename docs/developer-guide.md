@@ -99,6 +99,24 @@ debug/profile register with DTD automatically.
 Shell/`flutter` CLI is for what the MCP server cannot do: builds, installs,
 and the file-pull verification above.
 
+## Agent tooling
+
+Checked-in agent configuration (all of it is meant to be committed, not local):
+
+- `.agents/skills/` — vendored skill definitions: the engineering pack
+  (`mattpocock/skills`, hash-pinned in the workspace `skills-lock.json`) and the
+  design pack (banner/brand/design/slides/ui-styling/ui-ux-pro-max). The skill
+  router in `AGENTS.md` names these; new skills go here first, then into the
+  router table.
+- `.claude/skills/` — symlinks to `../.agents/skills/<name>` (plus a real
+  `graft/` skill). Never duplicate skill content here; symlink it.
+- MCP servers — `graft` everywhere: `.mcp.json` (Claude Code, omp; also `dart`),
+  `.gemini/settings.json`, `.grok/config.toml`, `opencode.json`.
+- `graft/` — generated context graph, gitignored; `AGENTS.md`, `GEMINI.md` and
+  the Claude hooks/statusline (`.claude/helpers/`) all read from it.
+- `.claude/settings.json` — graft hooks (post-edit refresh, session-start,
+  statusline). The `chisle` rule for Cursor lives in `.cursor/rules/`.
+
 ## Task closeout: commit & push
 
 After every completed task, commit and push the work before moving on — do not wait for a reminder:
