@@ -3,6 +3,11 @@
 Visual decisions for Geergit Root Helper. Read before changing icons,
 colors, splash, or any UI styling.
 
+How Material 3 is applied — component selection, states, motion, accessibility,
+adaptive layout — is defined by the `material-design-3-ui` skill (vendored at
+`.agents/skills/material-design-3-ui/`, symlinked into `.claude/skills/`). This
+file supplies the tokens that skill consumes; read the two together.
+
 ## Brand palette
 
 The theme seed is the logo's navy, read straight from `GRH.svg`

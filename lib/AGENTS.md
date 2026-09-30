@@ -14,6 +14,9 @@ Owns the Dart application layer: the entry point, screens, widgets, and app-leve
 - Read root `AGENTS.md` first.
 - Read `CONTEXT.md` for domain terminology.
 - Follow `docs/coding-standards.md` for layout, identity, and dependency rules.
+- Read `DESIGN.md` before any theme, colour, typography, or widget-styling change.
+- For UI work, load `material-design-3-ui` — it governs M3 structure, components,
+  states, and accessibility; `DESIGN.md` supplies this app's tokens.
 
 ## Work Guidance
 

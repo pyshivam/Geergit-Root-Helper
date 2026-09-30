@@ -36,6 +36,15 @@ Current identity: display name **Geergit Root Helper**, application id **`com.ge
 - Keep platform-specific behavior behind an explicit check (`Platform.isAndroid`, …) instead of forking the widget tree.
 - Give widgets that automation or tests must target a stable `Key` — never an index or a translated label.
 
+## Design
+
+- `DESIGN.md` at the repo root is the single source of visual truth: palette
+  tokens, dark-surface ladder, logo, splash, and launcher rules.
+- Load the `material-design-3-ui` skill for UI work: it defines how M3 is
+  applied (component selection, states, motion, accessibility); `DESIGN.md`
+  supplies this app's tokens.
+- A visual change updates `DESIGN.md` first, then the code (docs before code).
+
 ## Documentation
 
 - Docs before code: document the decision or lesson before implementing it; update the existing doc before creating a new one.

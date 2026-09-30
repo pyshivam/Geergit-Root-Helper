@@ -50,6 +50,8 @@ Load the relevant skill before starting work. If a task fits multiple categories
 | Turning discussion into a spec | `to-spec` |
 | Breaking a plan into tickets | `to-tickets` |
 | Implementing a spec or tickets | `implement` |
+| UI/UX design, M3 screens, theming, component work | `design-md-workflow`, then `material-design-3-ui` |
+| Visual assets (logo, splash, launcher icon) | `design-md-workflow`, then `design` |
 
 ### Feature work
 
